@@ -22,7 +22,6 @@ public:
 private:
     QHBoxLayout *mainLayout_;
     myContentList *list;
-    QVBoxLayout *contentLayout;
 };
 
 #endif //CMCL_PAGEBASE_H

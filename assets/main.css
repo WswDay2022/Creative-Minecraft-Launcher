@@ -1,0 +1,49 @@
+#myButton-border {
+    background-color: white;
+}
+
+#myButton-noBorder {
+    border: none;
+    background-color: white;
+}
+
+#myScrollPane,
+#pageChange {
+    border-bottom-right-radius: 6px;
+}
+
+#myMainSideBar {
+    border: none;
+    border-bottom-left-radius: 6px;
+}
+
+#myIconButton,
+#myTextButton {
+    border: none;
+    background: none;
+}
+
+#myContentCard {
+    border:none;
+    border-radius: 6px;
+}
+
+#myMenuBar {
+    border-left-width: 10px;
+    border-bottom-left-radius: 6px;
+}
+
+#myScrollPane,
+#minButton,
+#closeButton,
+#hideButton {
+    border: none;
+}
+
+#titleContent {
+    background-color: white;
+}
+
+#mainApplication {
+    border-radius: 6px;
+}

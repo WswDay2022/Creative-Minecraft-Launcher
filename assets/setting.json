@@ -1,0 +1,53 @@
+{
+  "launcherShortName": "CMCL",
+  "launcherLongName": "Creative Minecraft Launcher",
+  "launcherVersion": "0.1-alpha",
+  "launcherCacheDir": "D:\\CMCL",
+  "launcherTempDir": "D:\\CMCL\\temp",
+  "launcherAuthor": "WswDay2022",
+  "width": 1200,
+  "themeColor": [150,150,150],
+  "fontColor": [0,0,0],
+  "height": 950,
+  "timeout": 400,
+  "gameArguments-backup": {
+    "arguments": "",
+    "alwaysCheckObjectsFiles": true,
+    "jvm": "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -Dfml.ignorePatchDiscrepancies=True -Dfml.ignoreInvalidMinecraftCertificates=True -XX:-OmitStackTraceInFastThrow -Dlog4j2.formatMsgNoLookups=true -Djdk.lang.Process.allowAmbiguousCommands=true",
+    "minecraftDir": "D:\\CMCL\\.minecraft",
+    "maxMemory": 1024,
+    "minMemory": 256,
+    "width": 800,
+    "height": 500,
+    "fullScreen": false,
+    "demo": false,
+    "quickPlay": false
+  },
+  "gameArguments": {
+    "arguments": "",
+    "alwaysCheckObjectsFiles": true,
+    "jvm": "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -Dfml.ignorePatchDiscrepancies=True -Dfml.ignoreInvalidMinecraftCertificates=True -XX:-OmitStackTraceInFastThrow -Dlog4j2.formatMsgNoLookups=true -Djdk.lang.Process.allowAmbiguousCommands=true",
+    "minecraftDir": "D:\\CMCL\\.minecraft",
+    "maxMemory": 1024,
+    "minMemory": 256,
+    "width": 800,
+    "height": 500,
+    "fullScreen": false,
+    "demo": false,
+    "quickPlay": false
+  },
+  "users": [
+    {
+      "userName": "Steve",
+      "userType": "offline",
+      "uuid": "00000FFFFFFFFFFFFFFFFFFFFFF1F09A",
+      "action": true
+    }
+  ],
+  "thanksList": [
+    {
+      "name": "zcy2022zcy1002",
+      "url": null
+    }
+  ]
+}

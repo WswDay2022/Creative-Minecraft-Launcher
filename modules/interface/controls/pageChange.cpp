@@ -8,7 +8,6 @@ pageChange::pageChange(QWidget *parent)
     : QStackedWidget(parent) {
     setObjectName("pageChange");
     setAutoFillBackground(true);
-
     initControl();
 }
 

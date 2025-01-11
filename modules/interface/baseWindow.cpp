@@ -47,8 +47,10 @@ void baseWindow::initPanel() {
 void baseWindow::initPageChanger() {
     m_pageChange = new pageChange(this);
     m_pageChange->move(260,50);
+
     m_pageChange->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding); // 宽度固定，高度自适应
-    pageBase *base = new pageBase();
+    auto *base = new pageBase();
+    base->setBaseSize(100,100);
     base->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     m_pageChange->addWidget(base);

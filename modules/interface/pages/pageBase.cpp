@@ -8,11 +8,6 @@ pageBase::pageBase(QWidget *parent)
     : QWidget(parent) {
     setObjectName("pageBase");
     initControls();
-
-    setAutoFillBackground(true);
-    setStyleSheet("background-color:cyan"); // 用于测试
-
-    setFixedSize(500,500);
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 }
 
@@ -26,5 +21,4 @@ void pageBase::initControls() {
     setLayout(mainLayout_);
 }
 
-pageBase::~pageBase() {
-}
+pageBase::~pageBase() = default;

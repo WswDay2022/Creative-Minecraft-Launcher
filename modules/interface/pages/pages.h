@@ -6,18 +6,13 @@
 #define CMCL_PAGES_H
 
 #include <QVBoxLayout>
+#include "pageBase.h"
 
-class mainPage : public QVBoxLayout {
+class mainPage : public pageBase {
     Q_OBJECT
 public:
     mainPage(QWidget *parent = nullptr);
 
-    void addChildren(QWidget *w) {
-        centerLayout.addWidget(w);
-    };
-
-private:
-    QHBoxLayout centerLayout;
 };
 
 #endif //CMCL_PAGES_H

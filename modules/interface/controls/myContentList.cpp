@@ -16,12 +16,8 @@ myContentList::myContentList(QWidget *parent)
 
 void myContentList::initControl() {
     contentList = new QVBoxLayout();
-
-    setStyleSheet("background-color:black"); // 用于测试
-    setAutoFillBackground(true);
-
-    contentList->setContentsMargins(5,5,5,5);
     setLayout(contentList);
+    contentList->setContentsMargins(5,5,5,5);
     contentList->setSpacing(10);
 }
 

@@ -6,7 +6,7 @@
 
 myContentCard::myContentCard(QWidget *parent)
     : QWidget(parent) {
-    setObjectName("contentCard");
+    setObjectName("myContentCard");
     setStyleSheet("background-color:white");
     setAutoFillBackground(true);
     shadowEffect = new QGraphicsDropShadowEffect(this);
@@ -14,32 +14,18 @@ myContentCard::myContentCard(QWidget *parent)
     shadowEffect->setXOffset(0);
     shadowEffect->setYOffset(1);
     shadowEffect->setColor(QColor(0, 0, 0, 100));
+
     setGraphicsEffect(shadowEffect);
     colorAnimation = new QPropertyAnimation(shadowEffect, "color");
-    colorAnimation->setDuration(300);
+    colorAnimation->setDuration(150);
+
+    auto *layout = new QHBoxLayout();
+    setLayout(layout);
 }
 
-myContentCard::~myContentCard() {
-}
+myContentCard::~myContentCard() = default;
 
 void myContentCard::paintEvent(QPaintEvent *event) {
-    /*
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(QColor(255, 255,255));
-
-    painter.setPen(Qt::NoPen);
-    core core_;core_.globalInit();
-    QColor lighterColor = core_.themeColor.lighter(160);
-    painter.setBrush(lighterColor);
-    painter.drawRoundedRect(rect(), 6, 6);
-
-    QPainterPath pathBack;
-    pathBack.setFillRule(Qt::FillRule::WindingFill);
-    pathBack.addRoundedRect(QRect(0, 0, this->width(), this->height()+10).adjusted(10,10,-10,10), 10, 10);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.fillPath(pathBack, QBrush(QColor(255,255,255)));*/
-
     return QWidget::paintEvent(event);
 }
 

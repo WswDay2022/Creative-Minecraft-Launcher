@@ -7,6 +7,5 @@
 #include "../controls/myControls.h"
 
 mainPage::mainPage(QWidget *parent)
-    : QVBoxLayout(parent) {
-
+    : pageBase(parent) {
 }

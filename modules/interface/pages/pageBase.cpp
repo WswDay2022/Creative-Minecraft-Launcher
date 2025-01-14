@@ -1,5 +1,5 @@
 //
-// Created by wsz on 2024/12/14.
+// Created by WswDay2022 on 2024/12/14.
 //
 
 #include "pageBase.h"
@@ -17,8 +17,14 @@ void pageBase::initControls() {
     mainLayout_->setSpacing(0);
     list = new myContentList();
     list->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    for (int i = 0;i < 50;i++) {
+        myContentCard *card = new myContentCard();
+        card->setFixedHeight(100);
+        list->addAnCard(card);
+    }
     mainLayout_->addWidget(list);
     setLayout(mainLayout_);
+    list->loadWidget();
 }
 
 pageBase::~pageBase() = default;

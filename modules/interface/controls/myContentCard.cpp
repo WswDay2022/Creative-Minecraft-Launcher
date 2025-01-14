@@ -13,13 +13,16 @@ myContentCard::myContentCard(QWidget *parent)
     shadowEffect->setBlurRadius(10);
     shadowEffect->setXOffset(0);
     shadowEffect->setYOffset(1);
-    shadowEffect->setColor(QColor(0, 0, 0, 100));
+    shadowEffect->setColor(QColor(0, 0, 0, 150));
 
     setGraphicsEffect(shadowEffect);
     colorAnimation = new QPropertyAnimation(shadowEffect, "color");
     colorAnimation->setDuration(150);
 
     auto *layout = new QHBoxLayout();
+    QLabel *label = new QLabel();
+    label->setObjectName("myContentCard");
+    layout->addWidget(label);
     setLayout(layout);
 }
 
@@ -31,7 +34,7 @@ void myContentCard::paintEvent(QPaintEvent *event) {
 
 void myContentCard::enterEvent(QEnterEvent *event) {
     core core_;core_.globalInit();
-    colorAnimation->setStartValue(QColor(0, 0, 0,200));
+    colorAnimation->setStartValue(QColor(0, 0, 0,150));
     colorAnimation->setEndValue(core_.themeColor);
     colorAnimation->start();
     return QWidget::enterEvent(event);
@@ -40,7 +43,7 @@ void myContentCard::enterEvent(QEnterEvent *event) {
 void myContentCard::leaveEvent(QEvent *event) {
     core core_;core_.globalInit();
     colorAnimation->setStartValue(core_.themeColor);
-    colorAnimation->setEndValue(QColor(0, 0, 0,200));
+    colorAnimation->setEndValue(QColor(0, 0, 0,150));
     colorAnimation->start();
     return QWidget::leaveEvent(event);
 }

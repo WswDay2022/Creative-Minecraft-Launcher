@@ -5,16 +5,16 @@
 #include "myControls.h"
 
 myButton::myButton(const QString &text, QWidget *parent)
-    : QPushButton(text,parent), tempRect(this->rect()) {
+    : QPushButton(text,parent) {
     setObjectName("myButton");
     setStyle(CONTROL_INFO);
     setFixedHeight(40);
+
     shadowEffect = new QGraphicsDropShadowEffect(this);
     shadowEffect->setBlurRadius(10);
     shadowEffect->setXOffset(0);
     shadowEffect->setYOffset(1);
-
-    shadowEffect->setColor(QColor(0, 0, 0,200));
+    shadowEffect->setColor(QColor(0, 0, 0,150));
     setGraphicsEffect(shadowEffect);
 
     colorAnimation = new QPropertyAnimation(shadowEffect,"color");
@@ -41,97 +41,97 @@ void myButton::paintEvent(QPaintEvent *event) {
     painter.setBrush(Qt::white);
     painter.setPen(Qt::white);
     painter.drawRoundedRect(rect(), 6, 6);
+
     switch (type_) {
         case CONTROL_INFO:
             painter.setPen(core_.themeColor);
-            painter.drawRoundedRect(rect(), 6, 6);
-            painter.drawText(rect(), Qt::AlignCenter, option.text);
             break;
         case CONTROL_ERROR:
             painter.setPen(core_.errColor);
-            painter.drawRoundedRect(rect(), 6, 6);
-            painter.drawText(rect(), Qt::AlignCenter, option.text);
             break;
         case CONTROL_WARING:
             painter.setPen(core_.warnColor);
-            painter.drawRoundedRect(rect(), 6, 6);
-            painter.drawText(rect(), Qt::AlignCenter, option.text);
             break;
     }
+
+    painter.drawRoundedRect(rect(), 6, 6);
+    painter.drawText(rect(), Qt::AlignCenter, option.text);
 }
 
 void myButton::enterEvent(QEnterEvent *event) {
     setCursor(Qt::PointingHandCursor);
     core core_;core_.globalInit();
+    colorAnimation->setStartValue(QColor(0, 0, 0, 150));
     Q_UNUSED(event)
+
     if (type_ == CONTROL_INFO) {
-        colorAnimation->setStartValue(QColor(0, 0, 0, 200));
         colorAnimation->setEndValue(core_.themeColor);
-        colorAnimation->start();
     } else if (type_ == CONTROL_ERROR) {
-        colorAnimation->setStartValue(QColor(0, 0, 0, 200));
         colorAnimation->setEndValue(core_.errColor);
-        colorAnimation->start();
     } else if (type_ == CONTROL_WARING) {
-        colorAnimation->setStartValue(QColor(0, 0, 0, 200));
         colorAnimation->setEndValue(core_.warnColor);
-        colorAnimation->start();
     }
+
+    colorAnimation->start();
 }
 
 void myButton::leaveEvent(QEvent *event) {
     core core_;core_.globalInit();
+    colorAnimation->setEndValue(QColor(0, 0, 0, 150));
     Q_UNUSED(event)
+
     if (type_ == CONTROL_INFO) {
         colorAnimation->setStartValue(core_.themeColor);
-        colorAnimation->setEndValue(QColor(0, 0, 0, 200));
-        colorAnimation->start();
     } else if (type_ == CONTROL_ERROR) {
         colorAnimation->setStartValue(core_.errColor);
-        colorAnimation->setEndValue(QColor(0, 0, 0, 200));
-        colorAnimation->start();
     } else if (type_ == CONTROL_WARING){
         colorAnimation->setStartValue(core_.warnColor);
-        colorAnimation->setEndValue(QColor(0, 0, 0, 200));
-        colorAnimation->start();
     }
+
+    colorAnimation->start();
 }
 
 void myButton::setSize(QSize size) {
     setMaximumSize(size);
     setMinimumSize(size-QSize(20,20));
-    tempRect = QRect(this->x(),this->y(),size.width(),size.height());
 }
 
 void myButton::setSize(int w, int h) {
     setMaximumSize(w,h);
     setMinimumSize(w-20,h-20);
-    tempRect = QRect(this->x(),this->y(),w,h);
 }
 
 void myButton::mousePressEvent(QMouseEvent *event) {
-    auto *pressAnimation = new QPropertyAnimation(this, "geometry");
-    pressAnimation->setDuration(150);  // 动画持续时间
-    pressAnimation->setStartValue(tempRect);
-    pressAnimation->setEndValue(QRect(this->x()+3,this->y()+3,this->width()-6,this->height()-6));  // 按下时缩小90%
-    tempRect = this->rect();
-    pressAnimation->start();
+    // 创建动画对象，控制按钮的缩放效果
+    auto *animation = new QPropertyAnimation(this, "geometry");
+    animation->setDuration(100); // 动画持续时间
+    animation->setStartValue(geometry()); // 起始位置
+    animation->setEndValue(geometry().adjusted(2, 2, -4, -4));
+
+    auto *returnAnimation = new QPropertyAnimation(this, "geometry");
+    returnAnimation->setDuration(100);
+    returnAnimation->setStartValue(animation->endValue());
+    returnAnimation->setEndValue(geometry()); // 返回到原来的位置
+
+    if (!m_isAnimating) { // 防止多次触发
+        m_isAnimating = true;
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
+        connect(animation, &QPropertyAnimation::finished, [=]() {
+            returnAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+        });
+        connect(returnAnimation, &QPropertyAnimation::finished, [=]() {
+            m_isAnimating = false; // 动画结束，允许再次点击
+            returnAnimation->deleteLater();
+        });
+    }
+
     shadowEffect->setBlurRadius(10);
     return QPushButton::mousePressEvent(event);
 }
 
 void myButton::mouseReleaseEvent(QMouseEvent *event) {
-    auto *releaseAnimation = new QPropertyAnimation(this, "geometry");
-    releaseAnimation->setDuration(150);
-    releaseAnimation->setStartValue(tempRect);
-    releaseAnimation->setEndValue(QRect(this->x()-3,this->y()-3,this->width()+6,this->height()+6));  // 按下时缩小90
-    tempRect = this->rect();
-    releaseAnimation->start();
     shadowEffect->setBlurRadius(10);
     return QPushButton::mouseReleaseEvent(event);
 }
 
-myButton::~myButton() {
-}
-
-
+myButton::~myButton() = default;

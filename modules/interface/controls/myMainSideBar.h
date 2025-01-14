@@ -31,6 +31,16 @@ protected:
 private slots:
     void toggleSidebar();
 
+signals:
+    void widthChanged();
+
+private:
+    int m_width;
+    Q_PROPERTY(int getWidth READ getWidth WRITE setWidth NOTIFY widthChanged);
+
+    int getWidth() const;
+    void setWidth(const int &width);
+    void animateWidth(const int &startWidth, const int &endWidth, int duration);
 };
 
 

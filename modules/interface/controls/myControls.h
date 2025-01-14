@@ -56,11 +56,10 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
-    QList<QRectF> ripples;   // 存储水波纹的矩形区域
     controlType type_;
+    bool m_isAnimating = false; // 跟踪动画状态
     QGraphicsDropShadowEffect *shadowEffect;
     QPropertyAnimation *colorAnimation;
-    QRect tempRect = this->rect();
 };
 
 class myIconButton : public QPushButton {

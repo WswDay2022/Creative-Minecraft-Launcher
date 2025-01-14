@@ -124,6 +124,7 @@ add_executable(CMCL main.cpp
         core/url/download/multiThreadDownloader.h
         core/url/download/concurrentDownloader.cpp
         core/url/download/concurrentDownloader.h
+        modules/interface/controls/myScrollBar.cpp
 )
 
 find_package(cryptopp CONFIG REQUIRED)

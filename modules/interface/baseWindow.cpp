@@ -27,7 +27,6 @@ baseWindow::baseWindow(QWidget *parent)
 
     QScreen *screen = QGuiApplication::primaryScreen();
     setWindowTitle(QString::fromStdString(core_.getSettingJson()["launcherLongName"].asString()));
-    screen->geometry();
     setGeometry((screen->geometry().width() - width) / 2,
                 (screen->geometry().height() - height) / 2,
                 width, height);

@@ -5,21 +5,19 @@
 #include "myControls.h"
 
 myMessageBox::myMessageBox(QWidget *parent,int w,int h)
-    : QWidget(parent) {
-    setStyle(CONTROL_INFO);
-    setAttribute(Qt::WA_DeleteOnClose);
+    : QWidget(parent), width(w), height(h) {
+    setControlStyle(CONTROL_INFO);
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    setGeometry(0,0,parent->width(),parent->height());
-    width = w;height = h;
+    setGeometry(0,0,this->parentWidget()->width(),this->parentWidget()->height());
     this->setWindowFlags(Qt::FramelessWindowHint);
     initControl();
+
     setLayout(mainPane);
 }
 
-myMessageBox::~myMessageBox() {
-}
+myMessageBox::~myMessageBox() = default;
 
-void myMessageBox::setStyle(controlType type) {
+void myMessageBox::setControlStyle(controlType type) {
     type_ = type;
     update();
 }
@@ -30,21 +28,23 @@ void myMessageBox::addChildWidget(QWidget *widget) {
 
 void myMessageBox::initControl() {
     mainPane = new QGridLayout();
+    mainPane->setContentsMargins(5,5,5,5);
     mainPane->setObjectName("myMessageBox");
-    QLabel *label = new QLabel(this);
-    label->setLayout(mainPane);
-    label->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-    label->setGeometry((this->size().width()-width)/2,
+    background = new QLabel(this); // 遮蔽
+    background->setLayout(mainPane);
+    background->setGeometry((this->size().width()-width)/2,
                        (this->size().height()-height)/2,
                        width,height);
-    label->setStyleSheet("background-color:white;border:none;border-radius:6px;");
-    myButton *close = new myButton("关闭");
-    close->setStyle(controlType::CONTROL_ERROR);
-    connect(close, SIGNAL(clicked()),this, SLOT(onCloseButtonClicked()));
+    background->setStyleSheet("background-color:white;border:none;border-radius:6px;");
 
+    QIcon icon = QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton);
+    auto *close = new myIconButton(icon);
+    close->setSize(20,20);
+    close->setControlStyle(type_);
+    connect(close, &QPushButton::clicked,this, &myMessageBox::onCloseButtonClicked);
     mainPane->addWidget(close,1,2);
 
-    QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect(mainPane);
+    auto *shadowEffect = new QGraphicsDropShadowEffect(mainPane);
     shadowEffect->setBlurRadius(50);
     shadowEffect->setXOffset(0);
     shadowEffect->setYOffset(10);
@@ -64,22 +64,30 @@ void myMessageBox::initControl() {
             core_.warnColor.setAlpha(255);
             break;
     }
-    label->setGraphicsEffect(shadowEffect);
+    background->setGraphicsEffect(shadowEffect);
 }
 
 void myMessageBox::onCloseButtonClicked() {
-    auto *opacityEffect = new QGraphicsOpacityEffect(this);
-    opacityEffect->setOpacity(1);
-    this->setGraphicsEffect(opacityEffect);
+    auto *opacityEffect = new QGraphicsOpacityEffect();
+    //opacityEffect->setOpacity(1);
+    //this->setGraphicsEffect(opacityEffect);
     auto *fadeOutAnimation = new QPropertyAnimation(opacityEffect, "opacity");
     fadeOutAnimation->setDuration(250); // 设置消失动画持续时间
     fadeOutAnimation->setStartValue(1);  // 从透明度 1 开始
     fadeOutAnimation->setEndValue(0);    // 到透明度 0 结束
-    // fadeOutAnimation->setEasingCurve(QEasingCurve::Custom); // 设置曲线为回弹
-    fadeOutAnimation->start();
-    connect(fadeOutAnimation, SIGNAL(&QPropertyAnimation::finished),this,SLOT([this]() {
+    auto *fadeOutAnimation1 = new QPropertyAnimation(background, "geometry");
+    fadeOutAnimation1->setDuration(100); // 设置消失动画持续时间
+    fadeOutAnimation1->setStartValue(geometry());  // 从透明度 1 开始
+    fadeOutAnimation1->setEndValue(geometry().adjusted(5,5,-10,-10));    // 到透明度 0 结束
+    //fadeOutAnimation1->start(QAbstractAnimation::DeleteWhenStopped);
+    this->close();
+    deleteLater();
+
+    //fadeOutAnimation->start();
+    connect(fadeOutAnimation, &QPropertyAnimation::finished,this,[this]() {
         this->close();
-    }));
+        deleteLater();
+    });
 }
 
 void myMessageBox::paintEvent(QPaintEvent *event) {
@@ -95,7 +103,7 @@ void myMessageBox::paintEvent(QPaintEvent *event) {
         case CONTROL_ERROR:
             core_.errColor.setAlpha(100);
             painter.setBrush(core_.errColor);
-            core_.warnColor.setAlpha(255);
+            core_.errColor.setAlpha(255);
             break;
         case CONTROL_WARING:
             core_.warnColor.setAlpha(100);

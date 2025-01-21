@@ -3,12 +3,13 @@
 //
 
 #include "myControls.h"
+#include "../animation/myAnimator.h"
 
 myButton::myButton(const QString &text, QWidget *parent)
     : QPushButton(text,parent) {
+
     setObjectName("myButton");
-    setStyle(CONTROL_INFO);
-    setFixedHeight(40);
+    setControlStyle(CONTROL_INFO);
 
     shadowEffect = new QGraphicsDropShadowEffect(this);
     shadowEffect->setBlurRadius(10);
@@ -25,7 +26,9 @@ myButton::myButton(const QString &text, QWidget *parent)
     setFont(customFont);
 }
 
-void myButton::setStyle(controlType type) {
+myButton::~myButton() = default;
+
+void myButton::setControlStyle(controlType type) {
     type_ = type;
     update();
 }
@@ -62,7 +65,6 @@ void myButton::enterEvent(QEnterEvent *event) {
     setCursor(Qt::PointingHandCursor);
     core core_;core_.globalInit();
     colorAnimation->setStartValue(QColor(0, 0, 0, 150));
-    Q_UNUSED(event)
 
     if (type_ == CONTROL_INFO) {
         colorAnimation->setEndValue(core_.themeColor);
@@ -73,12 +75,12 @@ void myButton::enterEvent(QEnterEvent *event) {
     }
 
     colorAnimation->start();
+    return QPushButton::enterEvent(event);
 }
 
 void myButton::leaveEvent(QEvent *event) {
     core core_;core_.globalInit();
     colorAnimation->setEndValue(QColor(0, 0, 0, 150));
-    Q_UNUSED(event)
 
     if (type_ == CONTROL_INFO) {
         colorAnimation->setStartValue(core_.themeColor);
@@ -89,20 +91,21 @@ void myButton::leaveEvent(QEvent *event) {
     }
 
     colorAnimation->start();
+    return QPushButton::leaveEvent(event);
 }
 
 void myButton::setSize(QSize size) {
     setMaximumSize(size);
-    setMinimumSize(size-QSize(20,20));
+    setMinimumSize(size-QSize(4,4));
 }
 
 void myButton::setSize(int w, int h) {
     setMaximumSize(w,h);
-    setMinimumSize(w-20,h-20);
+    setMinimumSize(w-4,h-4);
 }
 
 void myButton::mousePressEvent(QMouseEvent *event) {
-    // 创建动画对象，控制按钮的缩放效果
+    /*// 创建动画对象，控制按钮的缩放效果
     auto *animation = new QPropertyAnimation(this, "geometry");
     animation->setDuration(100); // 动画持续时间
     animation->setStartValue(geometry()); // 起始位置
@@ -111,18 +114,42 @@ void myButton::mousePressEvent(QMouseEvent *event) {
     auto *returnAnimation = new QPropertyAnimation(this, "geometry");
     returnAnimation->setDuration(100);
     returnAnimation->setStartValue(animation->endValue());
-    returnAnimation->setEndValue(geometry()); // 返回到原来的位置
+    returnAnimation->setEndValue(geometry()); // 返回到原来的位置*/
 
-    if (!m_isAnimating) { // 防止多次触发
-        m_isAnimating = true;
-        animation->start(QAbstractAnimation::DeleteWhenStopped);
-        connect(animation, &QPropertyAnimation::finished, [=]() {
-            returnAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-        });
-        connect(returnAnimation, &QPropertyAnimation::finished, [=]() {
-            m_isAnimating = false; // 动画结束，允许再次点击
-            returnAnimation->deleteLater();
-        });
+    myAnimator animator(100);
+    auto animation = animator.scaleAnimation(this,this->size(),this->size()-QSize(4,4),false);
+    auto returnAnimation = animator.scaleAnimation(this,animation->endValue().toSize(),this->size()+QSize(4,4),false);
+
+
+    auto *animation1 = new QPropertyAnimation(this, "textSize");
+    animation1->setDuration(100);
+    animation1->setStartValue(font().pointSize());
+    animation1->setEndValue(font().pointSize()-1);
+
+    auto *returnAnimation1 = new QPropertyAnimation(this, "textSize");
+    returnAnimation1->setDuration(100);
+    returnAnimation1->setStartValue(animation1->endValue());
+    returnAnimation1->setEndValue(font().pointSize());
+
+    if (event->button() == Qt::LeftButton) {
+        if (!m_isAnimating) { // 防止多次触发
+            m_isAnimating = true;
+            animation->start(QAbstractAnimation::DeleteWhenStopped);
+            animation1->start(QAbstractAnimation::DeleteWhenStopped);
+            connect(animation, &QPropertyAnimation::finished, [=]() {
+                returnAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+            });
+            connect(animation1, &QPropertyAnimation::finished, [=]() {
+                returnAnimation1->start(QAbstractAnimation::DeleteWhenStopped);
+            });
+            connect(returnAnimation, &QPropertyAnimation::finished, [=]() {
+                connect(returnAnimation1, &QPropertyAnimation::finished, [=]() {
+                    m_isAnimating = false; // 动画结束，允许再次点击
+                    returnAnimation->deleteLater();
+                    returnAnimation1->deleteLater();
+                });
+            });
+        }
     }
 
     shadowEffect->setBlurRadius(10);
@@ -134,4 +161,16 @@ void myButton::mouseReleaseEvent(QMouseEvent *event) {
     return QPushButton::mouseReleaseEvent(event);
 }
 
-myButton::~myButton() = default;
+int myButton::textSize() const {
+    return m_textSize;
+}
+
+void myButton::setTextSize(const int &size) {
+    if (m_textSize != size) {
+        m_textSize = size;
+        QFont oldFont = font();
+        oldFont.setPointSize(size);
+        setFont(oldFont);
+        emit textSizeChanged();
+    }
+}

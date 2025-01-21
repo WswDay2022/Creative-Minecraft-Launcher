@@ -26,8 +26,14 @@ void myTitleBar::initControl() {
     m_pIcon = new QLabel;
     m_pTitleContent = new QLabel;
 
-    m_pButtonMin = new QPushButton;
-    m_pButtonClose = new QPushButton;
+    QIcon min = QApplication::style()->standardIcon(QStyle::SP_TitleBarMinButton);
+    QIcon close = QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton);
+
+    m_pButtonMin = new myIconButton(min);
+    m_pButtonClose = new myIconButton(close);
+    m_pButtonMin->setControlStyle(CONTROL_ERROR);
+    m_pButtonClose->setControlStyle(CONTROL_ERROR);
+
     m_pTitleContent->setFixedHeight(BUTTON_HEIGHT);
     m_pButtonMin->setFixedSize(QSize(BUTTON_WIDTH, BUTTON_HEIGHT));
     m_pButtonClose->setFixedSize(QSize(BUTTON_WIDTH, BUTTON_HEIGHT));
@@ -49,9 +55,6 @@ void myTitleBar::initControl() {
     palette1.setColor(QPalette::ButtonText,core_.fontColor);
     m_pButtonMin->setPalette(palette);
     m_pButtonClose->setPalette(palette1);
-
-    QIcon min = QApplication::style()->standardIcon(QStyle::SP_TitleBarMinButton);
-    QIcon close = QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton);
 
     myControls controlTools;
     min = controlTools.setIconColor(min,core_.fontColor);

@@ -11,8 +11,7 @@ foreach(file ${files})
 endforeach()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_AUT
-        OMOC ON)
+set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
@@ -30,7 +29,6 @@ find_package(Qt6 COMPONENTS Core Widgets REQUIRED)
 qt6_wrap_cpp(MOC_FILES
         modules/interface/controls/myControls.h
         modules/interface/controls/myTitleBar.h
-        modules/interface/controls/myMenuBar.h
         modules/interface/controls/myMainSideBar.h
         modules/interface/controls/pageChange.h
         modules/interface/controls/myContentList.h
@@ -38,6 +36,7 @@ qt6_wrap_cpp(MOC_FILES
         modules/interface/pages/mainLayout.h
         modules/interface/pages/pages.h
         modules/interface/animation/bounceAnimation.h
+        #modules/interface/animation/myAnimator.h
         modules/interface/baseWindow.h
         modules/interface/mainApplication.h
 )
@@ -100,8 +99,6 @@ add_executable(CMCL main.cpp
         modules/interface/pages/mainLayout.h
         modules/interface/controls/myTitleBar.cpp
         modules/interface/controls/myTitleBar.h
-        modules/interface/controls/myMenuBar.cpp
-        modules/interface/controls/myMenuBar.h
         core/core.cpp core/core.h
         modules/interface/baseWindow.cpp
         modules/interface/baseWindow.h
@@ -124,7 +121,11 @@ add_executable(CMCL main.cpp
         core/url/download/multiThreadDownloader.h
         core/url/download/concurrentDownloader.cpp
         core/url/download/concurrentDownloader.h
-        modules/interface/controls/myScrollBar.cpp
+        modules/interface/controls/myRoundButton.cpp
+        modules/interface/controls/myTextIconButton.cpp
+        modules/interface/controls/myRoundIconButton.cpp
+        modules/interface/animation/myAnimator.cpp
+        modules/interface/animation/myAnimator.h
 )
 
 find_package(cryptopp CONFIG REQUIRED)

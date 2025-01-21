@@ -36,12 +36,13 @@ void myTextButton::setTextFont(QFont font) {
     setFont(font);
 }
 
-void myTextButton::setStyle(controlType type) {
+void myTextButton::setControlStyle(controlType type) {
     type_ = type;
     update();
 }
 
 void myTextButton::enterEvent(QEnterEvent *event) {
+    setCursor(Qt::PointingHandCursor);
     core core_;core_.globalInit();
     switch (type_) {
         case CONTROL_INFO:
@@ -71,8 +72,9 @@ myTextButton::~myTextButton() {
 }
 
 void myTextButton::setTextColor(QColor color) {
-    setStyleSheet("color:"+color.name());
-    // setPalette(palette1);
+    QPalette palette1 = palette();
+    palette1.setColor(QPalette::ButtonText,color);
+    setPalette(palette1);
 }
 
 QColor myTextButton::textColor() const {
@@ -88,12 +90,8 @@ void myTextButton::setTextFillColor(QColor color) {
 }
 
 void myTextButton::animateTextColor(const QColor &startColor, const QColor &endColor, int duration) {
-    QPropertyAnimation *animation = new QPropertyAnimation(this, "textColor");
-    animation->setDuration(duration);
-    animation->setStartValue(startColor);
-    animation->setEndValue(endColor);
-    animation->setEasingCurve(QEasingCurve::InOutQuad);
-    animation->start();
+    myAnimator animator(duration);
+    animator.fontColorAnimation(this,startColor,endColor,true);
 }
 
 

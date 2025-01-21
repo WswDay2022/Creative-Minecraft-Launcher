@@ -19,6 +19,8 @@
 #include "baseWindow.h"
 #include <QPushButton>
 
+using namespace Log;
+
 class mainApplication : public baseWindow {
     Q_OBJECT
 

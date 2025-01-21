@@ -9,6 +9,7 @@
 #include "../../../core/json/reader.h"
 #include "../../../core/json/value.h"
 #include "../../../core/core.h"
+#include "myControls.h"
 
 #include <Qt>
 #include <QPushButton>
@@ -67,8 +68,8 @@ private slots:
 private:
     QLabel *m_pIcon;
     QLabel *m_pTitleContent;
-    QPushButton *m_pButtonMin;
-    QPushButton *m_pButtonClose;
+    myIconButton *m_pButtonMin;
+    myIconButton *m_pButtonClose;
 
     int m_colorR;
     int m_colorG;

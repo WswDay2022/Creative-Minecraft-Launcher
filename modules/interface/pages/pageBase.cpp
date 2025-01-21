@@ -17,11 +17,17 @@ void pageBase::initControls() {
     mainLayout_->setSpacing(0);
     list = new myContentList();
     list->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    for (int i = 0;i < 50;i++) {
-        myContentCard *card = new myContentCard();
-        card->setFixedHeight(100);
-        list->addAnCard(card);
-    }
+
+    myButton *button = new myButton("What Can I Say?");
+    button->setFixedHeight(40);
+
+    myContentCard *tipCard = new myContentCard(nullptr,true);
+    tipCard->setTitle("公告");
+    tipCard->setCanToggle(true);
+    tipCard->addChildWidget(button);
+    tipCard->setHeight(100);
+    list->addAnCard(tipCard);
+
     mainLayout_->addWidget(list);
     setLayout(mainLayout_);
     list->loadWidget();

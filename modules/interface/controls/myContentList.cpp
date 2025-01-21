@@ -18,8 +18,9 @@ void myContentList::initControl() {
     contentWidget = new QWidget();
     contentWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     contentList = new QVBoxLayout();
+    contentList->setAlignment(Qt::AlignmentFlag::AlignTop);
     contentWidget->setLayout(contentList);
-    contentList->setContentsMargins(5,5,5,5);
+    contentList->setContentsMargins(10,10,10,10);
     contentList->setSpacing(5);
     contentList->setEnabled(true);
 

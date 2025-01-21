@@ -9,7 +9,6 @@
 #include "controls/myTitleBar.h"
 #include "../../core/core.h"
 #include "controls/myMainSideBar.h"
-#include "controls/myMenuBar.h"
 #include "controls/pageChange.h"
 #include <QPainterPath>
 #include <QApplication>

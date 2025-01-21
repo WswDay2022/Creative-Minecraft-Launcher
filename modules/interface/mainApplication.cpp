@@ -9,7 +9,7 @@ mainApplication::mainApplication(QWidget *parent)
     setWindowFlag(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
 
-    QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect(this);
+    auto *shadowEffect = new QGraphicsDropShadowEffect(this);
     shadowEffect->setBlurRadius(10);
     shadowEffect->setXOffset(0);
     shadowEffect->setYOffset(1);
@@ -17,12 +17,10 @@ mainApplication::mainApplication(QWidget *parent)
     setGraphicsEffect(shadowEffect);
 
     setObjectName("application");
-    core core_;
-    core_.globalInit();
 }
 
 mainApplication::~mainApplication() {
-    qDebug() << "Application destructed.";
+    LogPrint("窗口已关闭","INFO");
 }
 
 void mainApplication::paintEvent(QPaintEvent *event) {
@@ -35,11 +33,7 @@ void mainApplication::drawRoundedRect(QPainter &painter) {
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
     core core_;core_.globalInit();
-    int m_colorR = core_.getSettingJson()["themeColor"][0].asInt();
-    int m_colorG = core_.getSettingJson()["themeColor"][1].asInt();
-    int m_colorB = core_.getSettingJson()["themeColor"][2].asInt();
-    QColor color(m_colorR,m_colorG,m_colorB);
-    QColor lighterColor = color.lighter(160);
+    QColor lighterColor = core_.themeColor.lighter(160);
     painter.setBrush(lighterColor);
     painter.drawRoundedRect(rect().adjusted(10,10,-10,-10), 10, 10);
 }

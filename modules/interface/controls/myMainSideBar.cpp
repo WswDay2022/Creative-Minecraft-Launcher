@@ -36,23 +36,38 @@ void myMainSideBar::toggleSidebar() {
 
 void myMainSideBar::initControl() {
     // 折叠按钮
-    QIcon icon = QApplication::style()->standardIcon(QStyle::SP_FileDialogInfoView);
+    QIcon icon = QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton);
     myIconButton *toggleButton = new myIconButton(icon);
-    toggleButton->setFixedSize(20,20);
+    toggleButton->setSize(20,20);
     toggleButton->setIconSize(QSize(20,20));
     connect(toggleButton, &QPushButton::clicked,this,&myMainSideBar::toggleSidebar);
 
-    myButton *button = new myButton("wf");
+    myTextButton *textButton = new myTextButton("傻逼");
+    myButton *button = new myButton("Test");
+    myRoundButton *roundButton = new myRoundButton();
+    myRoundIconButton *roundIconButton = new myRoundIconButton(icon);
+    roundButton->setText("SB");
+    textButton->setFixedSize(100,50);
+    roundButton->setSize(50,50);
+    roundIconButton->setSize(50,50);
     button->setSize(100,50);
+
+    connect(button,&QPushButton::clicked,this,[=]() {
+        // myMessageBox *box = new myMessageBox(this->parentWidget(),500,500);
+        // box->show();
+        // box->setControlStyle(CONTROL_WARING);
+    });
 
     QVBoxLayout *vbox = new QVBoxLayout();
     vbox->addWidget(toggleButton);
+    vbox->addWidget(textButton);
+    vbox->addWidget(roundButton);
+    vbox->addWidget(roundIconButton);
     vbox->addWidget(button);
     setLayout(vbox);
 }
 
-myMainSideBar::~myMainSideBar() {
-}
+myMainSideBar::~myMainSideBar() = default;
 
 int myMainSideBar::getWidth() const {
     return m_width;
@@ -61,19 +76,19 @@ int myMainSideBar::getWidth() const {
 void myMainSideBar::setWidth(const int &width) {
     if (m_width != width) {
         m_width = width;
-        setGeometry(this->x(),this->y(),width,this->height());;
+        setFixedWidth(width);
         emit widthChanged();
     }
 }
 
 void myMainSideBar::animateWidth(const int &startWidth, const int &endWidth, int duration) {
-    QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry");
+    QPropertyAnimation *animation = new QPropertyAnimation(this, "maximumWidth");
     animation->setDuration(duration);
-    animation->setStartValue(this->geometry());
-    animation->setEndValue(QRect(this->x()+1,this->y(),endWidth,this->height()));
+    animation->setStartValue(startWidth);
+    animation->setEndValue(endWidth);
     animation->setEasingCurve(QEasingCurve::OutCubic);
-    animation->start(QAbstractAnimation::DeleteWhenStopped);
+    animation->start();
     connect(animation, &QPropertyAnimation::finished, this, [=] {
-        move(this->x()-1,this->y());
+        //move(this->x()-1,this->y());
     });
 }

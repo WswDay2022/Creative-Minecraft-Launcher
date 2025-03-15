@@ -150,3 +150,9 @@ QFont core::getFont(int size) {
     QFont customFont(QFontDatabase::applicationFontFamilies(fontId).at(0),size);
     return customFont;
 }
+
+QFont core::getFont(int size) {
+    int fontId = QFontDatabase::addApplicationFont("../assets/font.ttf");
+    QFont customFont(QFontDatabase::applicationFontFamilies(fontId).at(0),size);
+    return customFont;
+}

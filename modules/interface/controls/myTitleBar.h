@@ -45,16 +45,12 @@ public:
     void saveRestoreInfo(const QPoint point, const QSize size);
     void getRestoreInfo(QPoint &point, QSize &size);
 
-private:
-    void paintEvent(QPaintEvent *event);
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-
-    void initControl();
-    void initConnections();
-    void loadStyleSheet();
+protected:
+    // void paintEvent(QPaintEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
 signals:
     void signalButtonMinClicked();
@@ -66,6 +62,10 @@ private slots:
     void onRollTitle();
 
 private:
+    void initControl();
+    void initConnections();
+    void loadStyleSheet();
+
     QLabel *m_pIcon;
     QLabel *m_pTitleContent;
     myIconButton *m_pButtonMin;

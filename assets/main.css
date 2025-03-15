@@ -17,9 +17,13 @@
     border-bottom-left-radius: 6px;
 }
 
+#myTitleBar {
+    /*border-top-left-radius: 6px;*/
+    /*border-top-right-radius: 6px;*/
+}
+
 #myIconButton,
 #myTextButton {
-
     border: none;
     background: none;
 }

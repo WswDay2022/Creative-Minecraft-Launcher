@@ -10,6 +10,7 @@
   "fontColor": [0,0,0],
   "height": 950,
   "timeout": 400,
+  "language": "zh-CN",
   "gameArguments-backup": {
     "arguments": "",
     "alwaysCheckObjectsFiles": true,

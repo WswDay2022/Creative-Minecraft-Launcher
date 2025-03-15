@@ -3,7 +3,6 @@
 //
 
 #include "myControls.h"
-#include "../animation/myAnimator.h"
 
 myContentCard::myContentCard(QWidget *parent,bool canToggle,bool canClose)
     : QWidget(parent), canToggle(canToggle), haveCloseButton(canClose) {
@@ -21,6 +20,8 @@ myContentCard::myContentCard(QWidget *parent,bool canToggle,bool canClose)
 
     setGraphicsEffect(shadowEffect);
     colorAnimation = new QPropertyAnimation(shadowEffect, "color");
+    colorAnimation->setTargetObject(shadowEffect);
+    colorAnimation->setParent(shadowEffect);
     colorAnimation->setDuration(150);
 }
 
@@ -28,14 +29,15 @@ myContentCard::~myContentCard() = default;
 
 void myContentCard::setHeight(int h) {
     setFixedHeight(h);
-    setMaximumHeight(h);
+    // setMaximumHeight(h);
+
     oldHeight = h;
+    oldContentHeight = h-60;
 }
 
 void myContentCard::setWidth(int w) {
     setFixedWidth(w);
-    setMaximumWidth(w);
-    oldWidth = w;
+    // setMaximumWidth(w);
 }
 
 void myContentCard::setCanToggle(bool b) {
@@ -110,28 +112,28 @@ void myContentCard::initControl() {
             animation->start(QAbstractAnimation::DeleteWhenStopped);
             connect(animation,&QPropertyAnimation::finished,this,[=]() {
                 this->close();
-                deleteLater();
+                // deleteLater();
+                delete animation;
             });
         });
     }
 
-    contentLayout = new QGridLayout();
-    contentLayout->setContentsMargins(0,0,0,0);
+    QWidget* contentContainer = new QWidget();
+    contentLayout = new QGridLayout(contentContainer);  // 将内容布局绑定到容器
+    contentLayout->setContentsMargins(5,5,5,5);
+    contentLayout->setAlignment(Qt::AlignTop);
+    oldContentHeight = contentContainer->height();
+
     panel->addLayout(bar);
-    panel->addLayout(contentLayout);
+    panel->addWidget(contentContainer);
     setLayout(panel);
 }
 
 void myContentCard::toggleCard() {
-    auto *animation = new QPropertyAnimation(this,"fixedHeight");
-    animation->setDuration(150);
-    animation->setStartValue(this->height());
-    animation->setEndValue(50);
-
-    auto *returnAnimation = new QPropertyAnimation(this,"fixedHeight");
-    returnAnimation->setDuration(150);
-    returnAnimation->setStartValue(animation->endValue());
-    returnAnimation->setEndValue(oldHeight);
+    /*
+    myAnimator animator(150);
+    auto *animation = animator.fixedHeightAnimation(this,this->height(),50,false);
+    auto *returnAnimation = animator.fixedHeightAnimation(this,animation->endValue().toInt(),oldHeight,false);
 
     animation->setEasingCurve(QEasingCurve::OutCubic);
     returnAnimation->setEasingCurve(QEasingCurve::OutCubic);
@@ -181,6 +183,107 @@ void myContentCard::toggleCard() {
                 });
             }
         }
+    }
+     -----------------------
+    if (m_isAnimating || !canToggle) return; // 防止重复触发和无效操作
+    m_isAnimating = true;
+
+    const int animationDuration = 150;
+    const QEasingCurve curve = QEasingCurve::OutCubic;
+    myAnimator animator(1000);
+
+    // 根据当前状态决定动画方向
+    if (!isToggle) {
+        rotatedToggleButton->setAngle(14);
+        // 折叠动画
+        oldHeight = height(); // 保存展开时的高度
+        auto* collapseAnim = animator.fixedHeightAnimation(this, oldHeight, 50, false);
+        collapseAnim->setEasingCurve(curve);
+
+        // 子部件渐隐
+        for (int i = 0; i < contentLayout->count(); ++i) {
+            if (auto widget = contentLayout->itemAt(i)->widget()) {
+                connect(animator.opacityAnimation(widget, 1, 0, true),&QAbstractAnimation::finished,[=]() {
+                    widget->hide();
+                });
+            }
+        }
+
+        connect(collapseAnim, &QPropertyAnimation::finished, this, [=] {
+            toggleButton->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarUnshadeButton));
+            isToggle = true;
+            m_isAnimating = false;
+            collapseAnim->deleteLater();
+        });
+        collapseAnim->start();
+    } else {
+        // 展开动画
+        auto* expandAnim = animator.fixedHeightAnimation(this, 50, oldHeight, false);
+        expandAnim->setEasingCurve(curve);
+
+        // 子部件渐显
+        for (int i = 0; i < contentLayout->count(); ++i) {
+            if (auto widget = contentLayout->itemAt(i)->widget()) {
+                widget->show();
+                animator.opacityAnimation(widget, 0, 1, true)->start();
+            }
+        }
+
+        connect(expandAnim, &QPropertyAnimation::finished, this, [=] {
+            toggleButton->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarShadeButton));
+            isToggle = false;
+            m_isAnimating = false;
+            expandAnim->deleteLater();
+        });
+        expandAnim->start();
+    }
+     */
+    if (m_isAnimating || !canToggle) return;
+    m_isAnimating = true;
+    myAnimator animator(150);
+    QWidget* contentContainer = contentLayout->parentWidget();
+
+    const int contentHeight = contentContainer->height();
+    auto* collapseAnimation = animator.fixedHeightAnimation(contentContainer, contentHeight, 0, false);
+    auto* collapseAnimation1 = animator.fixedHeightAnimation(this, this->height(), 50, false);
+    auto* expandAnimation = animator.fixedHeightAnimation(contentContainer, 0, oldContentHeight, false);
+    auto* expandAnimation1 = animator.fixedHeightAnimation(this, 50, oldHeight, false);
+
+    if (!isToggle) {
+        // 折叠内容区域（保留标题高度）
+        QEasingCurve curve(QEasingCurve::OutElastic);
+        //curve.setAmplitude(1.5); // 设置振幅
+        curve.setPeriod(2.1);    // 设置周期
+
+        collapseAnimation->setEasingCurve(curve);
+        collapseAnimation1->setEasingCurve(curve);
+
+        auto *group = new QParallelAnimationGroup(this);
+        group->addAnimation(collapseAnimation);
+        group->addAnimation(collapseAnimation1);
+        connect(group, &QPropertyAnimation::finished, [=] {
+            isToggle = true;
+            m_isAnimating = false;
+        });
+        group->start(QAbstractAnimation::DeleteWhenStopped);
+    } else {
+        // 展开内容区域到原始高度
+        QEasingCurve curve(QEasingCurve::OutElastic);
+        //curve.setAmplitude(1.5); // 设置振幅
+        curve.setPeriod(2.1);    // 设置周期
+
+        expandAnimation->setEasingCurve(curve);
+        expandAnimation1->setEasingCurve(curve);
+
+        auto *group = new QParallelAnimationGroup(this);
+        group->addAnimation(expandAnimation);
+        group->addAnimation(expandAnimation1);
+
+        connect(group, &QPropertyAnimation::finished, [=] {
+            isToggle = false;
+            m_isAnimating = false;
+        });
+        group->start(QAbstractAnimation::DeleteWhenStopped);
     }
 }
 

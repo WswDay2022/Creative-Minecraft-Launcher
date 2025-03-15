@@ -9,7 +9,8 @@ mainApplication::mainApplication(QWidget *parent)
     setWindowFlag(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
 
-    auto *shadowEffect = new QGraphicsDropShadowEffect(this);
+    QGraphicsDropShadowEffect *shadowEffect;
+    shadowEffect = new QGraphicsDropShadowEffect(this);
     shadowEffect->setBlurRadius(10);
     shadowEffect->setXOffset(0);
     shadowEffect->setYOffset(1);
@@ -20,7 +21,7 @@ mainApplication::mainApplication(QWidget *parent)
 }
 
 mainApplication::~mainApplication() {
-    LogPrint("窗口已关闭","INFO");
+    LogPrint("[MAIN APPLICATION]:窗口已关闭","INFO");
 }
 
 void mainApplication::paintEvent(QPaintEvent *event) {
@@ -31,8 +32,8 @@ void mainApplication::paintEvent(QPaintEvent *event) {
 
 void mainApplication::drawRoundedRect(QPainter &painter) {
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(Qt::NoPen);
     core core_;core_.globalInit();
+    painter.setPen(core_.themeColor);
     QColor lighterColor = core_.themeColor.lighter(160);
     painter.setBrush(lighterColor);
     painter.drawRoundedRect(rect().adjusted(10,10,-10,-10), 10, 10);

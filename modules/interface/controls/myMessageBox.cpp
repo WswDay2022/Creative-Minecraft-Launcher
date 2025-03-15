@@ -11,7 +11,6 @@ myMessageBox::myMessageBox(QWidget *parent,int w,int h)
     setGeometry(0,0,this->parentWidget()->width(),this->parentWidget()->height());
     this->setWindowFlags(Qt::FramelessWindowHint);
     initControl();
-
     setLayout(mainPane);
 }
 
@@ -31,17 +30,35 @@ void myMessageBox::initControl() {
     mainPane->setContentsMargins(5,5,5,5);
     mainPane->setObjectName("myMessageBox");
     background = new QLabel(this); // 遮蔽
+
+    QVBoxLayout *centerPane = new QVBoxLayout();
+    centerPane->setAlignment(Qt::AlignCenter);
+    centerPane->setContentsMargins(100,100,100,100);
+    centerPane->setSpacing(5);
+
     background->setLayout(mainPane);
-    background->setGeometry((this->size().width()-width)/2,
-                       (this->size().height()-height)/2,
-                       width,height);
+    background->setGeometry((this->size().width()-width)/2,(this->size().height()-height)/2,width,height);
     background->setStyleSheet("background-color:white;border:none;border-radius:6px;");
 
     QIcon icon = QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton);
     auto *close = new myIconButton(icon);
     close->setSize(20,20);
     close->setControlStyle(type_);
-    connect(close, &QPushButton::clicked,this, &myMessageBox::onCloseButtonClicked);
+    connect(close, &QPushButton::clicked,this, [=]() {
+        myAnimator animator(150);
+        auto *geometryAnimation = animator.geometryAnimation(background,background->geometry(),background->geometry().adjusted(5,5,-10,-10),false);
+        auto *opacityAnimation = animator.opacityAnimation(this,1,0,false);
+
+        auto *group = new QParallelAnimationGroup(this);
+        group->addAnimation(geometryAnimation);
+        //group->addAnimation(opacityAnimation);
+        group->start(QAbstractAnimation::DeleteWhenStopped);
+        connect(group, &QAbstractAnimation::finished,this,[this]() {
+            background->deleteLater();
+            mainPane->deleteLater();
+            this->deleteLater();
+        });
+    });
     mainPane->addWidget(close,1,2);
 
     auto *shadowEffect = new QGraphicsDropShadowEffect(mainPane);
@@ -67,35 +84,13 @@ void myMessageBox::initControl() {
     background->setGraphicsEffect(shadowEffect);
 }
 
-void myMessageBox::onCloseButtonClicked() {
-    auto *opacityEffect = new QGraphicsOpacityEffect();
-    //opacityEffect->setOpacity(1);
-    //this->setGraphicsEffect(opacityEffect);
-    auto *fadeOutAnimation = new QPropertyAnimation(opacityEffect, "opacity");
-    fadeOutAnimation->setDuration(250); // 设置消失动画持续时间
-    fadeOutAnimation->setStartValue(1);  // 从透明度 1 开始
-    fadeOutAnimation->setEndValue(0);    // 到透明度 0 结束
-    auto *fadeOutAnimation1 = new QPropertyAnimation(background, "geometry");
-    fadeOutAnimation1->setDuration(100); // 设置消失动画持续时间
-    fadeOutAnimation1->setStartValue(geometry());  // 从透明度 1 开始
-    fadeOutAnimation1->setEndValue(geometry().adjusted(5,5,-10,-10));    // 到透明度 0 结束
-    //fadeOutAnimation1->start(QAbstractAnimation::DeleteWhenStopped);
-    this->close();
-    deleteLater();
-
-    //fadeOutAnimation->start();
-    connect(fadeOutAnimation, &QPropertyAnimation::finished,this,[this]() {
-        this->close();
-        deleteLater();
-    });
-}
-
 void myMessageBox::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
-    core core_;core_.globalInit();
+    static core core_;
+    core_.globalInit();
     switch (type_) {
         case CONTROL_INFO:
             painter.setBrush(QColor(0,0,0,100));

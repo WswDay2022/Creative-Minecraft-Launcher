@@ -3,6 +3,7 @@
 //
 
 #include "downloads.h"
+#include "../../../core/url/download/multiThreadDownloader.h"
 #include "../../../core/url/download/concurrentDownloader.h"
 
 void downloads::downloadObjects() {
@@ -15,12 +16,12 @@ void downloads::downloadObjects() {
     for (auto &object : objects) {
         if (!object.empty()) {
             LogPrint("[DOWNLOADER]:下载文件:" + object["url"].asString() + ",保存至:" + object["path"].asString(),"INFO");
-            downloader.addDownloadTask(object["url"].asString(),object["path"].asString());
+            downloader.addTask(object["url"].asString(),object["path"].asString());
         }
     }
-    downloader.startAllTasks();
-    downloader.waitAllTasks();
-    // downloader.verifyDownloadTasks();
+    downloader.start();
+    LogPrint("[DOWNLOADER]:一共有 " + std::to_string(downloader.getFailedCount()) + " 个资源文件下载失败");
+    LogPrint("[DOWNLOADER]:所有下载任务已完成");
 }
 
 void downloads::downloadLibraries() {
@@ -29,19 +30,16 @@ void downloads::downloadLibraries() {
 
     Json::Value libraries = asset.getLibraries();
     concurrentDownloader downloader(libraries.size());
-
+    downloader.setRetryTimes(3);
     for (auto &library : libraries) {
         if (!library.empty()) {
             LogPrint("[DOWNLOADER]:下载文件:" + library["url"].asString() + ",保存至:" + library["path"].asString(),"INFO");
-            downloader.addDownloadTask(library["url"].asString(), library["path"].asString());
+            downloader.addTask(library["url"].asString(),library["path"].asString());
         }
     }
-    downloader.startAllTasks();
-    downloader.waitAllTasks();
-    if (downloader.getFailedCount() > 0) {
-        downloader.retryFailedTasks();
-    }
 
-    //downloader.verifyDownloadTasks();
+    downloader.start();
+    LogPrint("[DOWNLOADER]:一共有 " + std::to_string(downloader.getFailedCount()) + " 个库文件下载失败");
+    LogPrint("[DOWNLOADER]:所有下载任务已完成");
 }
 

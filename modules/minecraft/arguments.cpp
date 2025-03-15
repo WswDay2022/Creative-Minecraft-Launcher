@@ -10,7 +10,7 @@ void launch::setGameArguments() {
     if (!reader.parse(versionJson_,value)) return;
     Json::Value content = value;
     if (content.empty()) {
-        LogPrint("JSON文件是空的","ERROR");
+        LogPrint("[IO]:JSON文件是空的","ERROR");
         return;
     }
 
@@ -83,7 +83,7 @@ void launch::setCPClasses() {
     if (!reader.parse(versionJson_,value)) return;
     Json::Value content = value;
     if (content.empty()) {
-        LogPrint("JSON文件是空的","ERROR");
+        LogPrint("[IO]:JSON文件是空的","ERROR");
         return;
     }
     #if defined(WIN32) || defined(WIN64)
@@ -122,7 +122,7 @@ void launch::setJVMOptions() {
     if (!reader.parse(versionJson_,value)) return;
     Json::Value content = value;
     if (content.empty()) {
-        LogPrint("JSON文件是空的","ERROR");
+        LogPrint("[IO]:JSON文件是空的","ERROR");
         return;
     }
 

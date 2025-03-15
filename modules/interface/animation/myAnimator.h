@@ -1,5 +1,5 @@
 //
-// Created by wsz on 2025/1/17.
+// Created by WswDay2022 on 2025/1/17.
 //
 
 #ifndef CMCL_MYANIMATOR_H
@@ -33,17 +33,18 @@ public:
 
     void setDuration(int duration);
 
-    QPropertyAnimation *opacityAnimation(QWidget *parent,const int &startValue,const int &endValue,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped);
-    QPropertyAnimation *scaleAnimation(QWidget *parent,const QSize &startSize,const QSize &endSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped);
-    QPropertyAnimation *scaleAnimation(QWidget *parent,const int &scaleSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped);
+    QPropertyAnimation *opacityAnimation(QWidget *parent,const double &startValue,const double &endValue,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *scaleAnimation(QWidget *parent,const QSize &startSize,const QSize &endSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *scaleAnimation(QWidget *parent,const int &scaleSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *geometryAnimation(QWidget *parent,const QRect &startRect,const QRect &endRect,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *rotateAnimation(QWidget *parent,const int &startDeg,const int &endDeg,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *fixedHeightAnimation(QWidget *parent,const int &startHeight, const int &endHeight, bool start, QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *fixedWidthAnimation(QWidget *parent,const int &startWidth,const int &endWidth,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
 
-    QPropertyAnimation *fontColorAnimation(QWidget *parent,const QColor &startColor,const QColor &endColor,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped);
-    QPropertyAnimation *shadowColorAnimation(QWidget *parent,const QColor &startColor,const QColor &endColor,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped);
-
-    QPropertyAnimation *sizeFontAnimation(QWidget *parent,const int &startPointSize,const int &endPointSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped);
-
-    QPropertyAnimation *iconColorButtonAnimation(QPushButton *button,const QColor &startColor,const QColor &endColor,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped);
-    QPropertyAnimation *iconSizeButtonAnimation(QPushButton *button,const QSize &startSize,const QSize &endSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped);
+    QPropertyAnimation *fontColorAnimation(QWidget *parent,const QColor &startColor,const QColor &endColor,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *fontSizeAnimation(QWidget *parent, const int &startPointSize, const int &endPointSize, bool start, QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *iconColorButtonAnimation(QPushButton *button,const QColor &startColor,const QColor &endColor,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
+    QPropertyAnimation *iconSizeButtonAnimation(QPushButton *button,const QSize &startSize,const QSize &endSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
 
 
 private:

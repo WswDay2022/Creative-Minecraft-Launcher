@@ -2,6 +2,7 @@
 // Created by WswDay2022 on 2024/12/14.
 //
 
+#include <QGraphicsRotation>
 #include "myControls.h"
 
 myIconButton::myIconButton(const QIcon &icon,QWidget *parent)
@@ -18,7 +19,8 @@ void myIconButton::paintEvent(QPaintEvent *event) {
 }
 
 void myIconButton::setButtonIcon(QIcon icon) {
-    core core_;core_.globalInit();
+    static core core_;
+    core_.globalInit();
     myControls tools;
     icon = tools.setIconColor(icon,core_.fontColor);
     setIcon(icon);
@@ -50,7 +52,7 @@ void myIconButton::animateIconColor(const QColor &startColor, const QColor &endC
 void myIconButton::enterEvent(QEnterEvent *event) {
     setCursor(Qt::PointingHandCursor);
     QWidget::enterEvent(event);
-    core core_;
+    static core core_;
     core_.globalInit();
     switch (type_) {
         case CONTROL_INFO:
@@ -67,7 +69,7 @@ void myIconButton::enterEvent(QEnterEvent *event) {
 
 void myIconButton::leaveEvent(QEvent *event) {
     QWidget::leaveEvent(event);
-    core core_;
+    static core core_;
     core_.globalInit();
     switch (type_) {
         case CONTROL_INFO:
@@ -83,39 +85,25 @@ void myIconButton::leaveEvent(QEvent *event) {
 }
 
 void myIconButton::mousePressEvent(QMouseEvent *event) {
+    // 创建动画对象，控制按钮的缩放效果
     myAnimator animator(100);
-    auto *animation = animator.iconSizeButtonAnimation(this,iconSize(),iconSize()-QSize(4,4),false);
+    auto *animation = animator.iconSizeButtonAnimation(this,iconSize(),iconSize()-QSize(2,2),false);
     auto *returnAnimation = animator.iconSizeButtonAnimation(this,animation->endValue().toSize(),animation->startValue().toSize(),false);
 
     if (event->button() == Qt::LeftButton) {
         if (!m_isAnimating) { // 防止多次触发
             m_isAnimating = true;
-            //animation->start(QAbstractAnimation::DeleteWhenStopped);
-            animation->start(QAbstractAnimation::DeleteWhenStopped);
-            connect(animation, &QPropertyAnimation::finished, [=]() {
-                returnAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-            });
-            connect(returnAnimation, &QPropertyAnimation::finished, [=]() {
+            auto *iconGroup = new QSequentialAnimationGroup(this);
+            iconGroup->addAnimation(animation);
+            iconGroup->addAnimation(returnAnimation);
+            iconGroup->start(QAbstractAnimation::DeleteWhenStopped);
+
+            connect(iconGroup, &QPropertyAnimation::finished, [=]() {
                 m_isAnimating = false; // 动画结束，允许再次点击
-                returnAnimation->deleteLater();
+                iconGroup->deleteLater();
             });
         }
     }
 
     return QPushButton::mousePressEvent(event);
-}
-
-void myIconButton::rotationAnimation(const int &startValue, const int &endValue, int duration) {
-    QPropertyAnimation* animation = new QPropertyAnimation(this, "rotationAngle");
-    animation->setDuration(duration);
-    animation->setStartValue(startValue);
-    animation->setEndValue(endValue);
-    animation->start(QAbstractAnimation::DeleteWhenStopped);
-}
-
-void myIconButton::setRotationAngle(qreal angle) {
-    if (m_rotationAngle != angle) {
-        m_rotationAngle = angle;
-        update();
-    }
 }

@@ -11,7 +11,7 @@ Json::Value assets::parser(const std::string &content) {
     Json::Reader reader;
     Json::Value value;
     if (reader.parse(content,value)) { return value; }
-    else { LogPrint("READ","Read json failed."); }
+    else { LogPrint("[IO]:无法解析JSON文件","ERROR"); }
     return value;
 }
 
@@ -28,7 +28,7 @@ void assets::checkRuleKey(Json::Value rule) {
 void assets::parsers() {
     Json::Value content = parser(versionJson_);
     if (content.empty()) {
-        LogPrint("OTHER","The json is empty.");
+        LogPrint("[IO]:JSON文件是空的","ERROR");
         return;
     }
     versionId = content["id"].asString();

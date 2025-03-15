@@ -1,59 +1,77 @@
 //
-// Created by WswDay2022 on 2024/12/21.
+// Created by WswDay2022 on 2025/2/4.
 //
 
 #ifndef CMCL_CONCURRENTDOWNLOADER_H
 #define CMCL_CONCURRENTDOWNLOADER_H
 
-#include "../../core.h"
-#include <curl/curl.h>
-#include <string>
-#include <vector>
-#include <thread>
-#include <mutex>
-#include <queue>
-#include <condition_variable>
 #include <atomic>
+#include <vector>
+#include <string>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
+#include <curl/curl.h>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <sstream>
+#include <map>
+#include "../webFetcher.h"
+#include "../../core.h"
 
 using namespace Log;
 
 class concurrentDownloader {
 public:
-    concurrentDownloader(size_t numThreads);
-    ~concurrentDownloader();
-    void addDownloadTask(const std::string& url, const std::string& savePath);
-    void setRetryCount(size_t numRetries);
-    size_t getFailedCount() const { return failedCount; }
-    void retryFailedTasks();
-    bool verifyDownloadTasks();
-
-    void startAllTasks();
-    void stopAllTasks();
-    void waitAllTasks();
-
-private:
-    struct aDownloadTask {
+    struct DownloadTask {
         std::string url;
-        std::string outputPath;
+        std::filesystem::path save_path;
+        size_t expected_size = 0;
     };
 
-    void workThread();
-    static size_t writeData(void* buffer, size_t size, size_t nmemb, std::ofstream* stream);
-    bool downloadTask(const aDownloadTask& task);
-    long getExpectedFileSize(const std::string& url);
-    bool verifyFile(const std::string& filePath, long expectedSize);
+    struct FailedTask {
+        DownloadTask task;
+        std::string error;
+    };
 
-    size_t threadCount; // 线程数量
-    size_t failedCount; // 失败任务数量
-    size_t retryCount = 3; // 重试数量
-    std::mutex queueMutex; // 队列锁
-    std::condition_variable condition; // 条件变量
-    std::queue<aDownloadTask> taskQueue; // 任务队列
-    std::queue<aDownloadTask> failedQueue; // 失败任务队列
-    std::vector<std::thread> workThreads; // 工作线程
-    std::atomic<bool> running; // 运行标
+    concurrentDownloader(size_t max_threads = 5);
+    ~concurrentDownloader();
+
+    void addTask(const std::string& url, const std::filesystem::path& save_path);
+    void start();
+    void stop();
+    void waitUntilFinished();
+    void setMaxSpeed(int64_t speedPerThread);
+    void setRetryTimes(int times);
+    void setProxy(const std::string& _proxy);
+    void setVerifySSL(bool verify);
+
+    std::vector<FailedTask> getFailedTasks() const;
+    size_t getFailedCount() const;
+
+private:
+    void workerThread();
+    bool downloadFile(const DownloadTask& task, std::string& error);
+    static size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata);
+
+    std::vector<std::thread> workers;
+    std::queue<DownloadTask> task_queue;
+    mutable std::mutex queue_mutex;
+    std::condition_variable queue_cv;
+
+    std::vector<FailedTask> failed_tasks;
+    mutable std::mutex failed_mutex;
+
+    int64_t maxSpeed = 0;
+    std::string proxy;
+    int maxRetries = 3;
+    bool verifySSL = true;
+    std::atomic<bool> running{false};
+    std::atomic<bool> stop_flag{false};
+    size_t max_workers;
+    std::map<CURL*, std::ofstream*> curl_handles;
 };
 
-#endif // CMCL_CONCURRENTDOWNLOADER_H
+#endif //CMCL_CONCURRENTDOWNLOADER_H

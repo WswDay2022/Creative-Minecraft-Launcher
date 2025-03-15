@@ -18,8 +18,12 @@ public:
     ~pageBase();
 
     void initControls();
+    void initPage();
 
-private:
+    void startPage();
+    void closePage();
+
+protected:
     QHBoxLayout *mainLayout_;
     myContentList *list;
 };

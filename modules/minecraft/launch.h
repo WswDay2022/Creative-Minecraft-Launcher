@@ -6,17 +6,17 @@
 #define CMCL_LAUNCH_H
 
 #include <string>
-#include "../../core/json/reader.h"
-#include "../../core/json/value.h"
-#include "../../core/core.h"
-#include "../../core/consolas.h"
-#include "../../core/url/download/downloader.h"
-#include "../../core/io/fileReader.h"
-#include "../../core/io/fileWriter.h"
 #include <filesystem>
 #include "assets.h"
 #include <regex>
 #include <random>
+#include "../../core/core.h"
+#include "../../core/consolas.h"
+#include "../../core/json/reader.h"
+#include "../../core/json/value.h"
+#include "../../core/io/fileReader.h"
+#include "../../core/io/fileWriter.h"
+#include "../../core/url/download/simpleDownloader.h"
 
 using namespace Log;
 
@@ -55,7 +55,6 @@ private:
     std::string versionJson_;
     std::string versionDirectory_;
     std::string versionId_;
-
 
 };
 

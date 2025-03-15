@@ -6,24 +6,18 @@
 
 myTextButton::myTextButton(const QString &text, QWidget *parent)
     : QPushButton(text,parent) {
+    setControlStyle(CONTROL_INFO);
     setObjectName("myTextButton");
-    int fontId = QFontDatabase::addApplicationFont("../assets/font.ttf");// 设置字体
-    QFont customFont(QFontDatabase::applicationFontFamilies(fontId).at(0),10);
-    setFont(customFont);
+    setTextSize(this->width()/2);
+    setFont(core::getFont());
 }
 
-void myTextButton::paintEvent(QPaintEvent *event) {
-    Q_UNUSED(event)
-    QPainter painter(this);
-    QStyleOptionButton option;
-    initStyleOption(&option);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(Qt::NoBrush);
-    painter.setPen(Qt::NoPen);
+myTextButton::~myTextButton() = default;
 
-    core core_;core_.globalInit();
-    painter.setPen(core_.fontColor);
-    painter.drawText(rect(), Qt::AlignCenter, option.text);
+void myTextButton::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    painter.setPen(Qt::NoPen);  // 设置无笔，忽略文本绘制
+    return QPushButton::paintEvent(event);
 }
 
 void myTextButton::setTextSize(int pointSize) {
@@ -43,7 +37,8 @@ void myTextButton::setControlStyle(controlType type) {
 
 void myTextButton::enterEvent(QEnterEvent *event) {
     setCursor(Qt::PointingHandCursor);
-    core core_;core_.globalInit();
+    static core core_;
+    core_.globalInit();
     switch (type_) {
         case CONTROL_INFO:
             animateTextColor(core_.fontColor,core_.themeColor,150);
@@ -56,7 +51,8 @@ void myTextButton::enterEvent(QEnterEvent *event) {
 }
 
 void myTextButton::leaveEvent(QEvent *event) {
-    core core_;core_.globalInit();
+    static core core_;
+    core_.globalInit();
     switch (type_) {
         case CONTROL_INFO:
             animateTextColor(core_.themeColor,core_.fontColor,150);
@@ -68,25 +64,10 @@ void myTextButton::leaveEvent(QEvent *event) {
     return QPushButton::leaveEvent(event);
 }
 
-myTextButton::~myTextButton() {
-}
-
 void myTextButton::setTextColor(QColor color) {
     QPalette palette1 = palette();
     palette1.setColor(QPalette::ButtonText,color);
     setPalette(palette1);
-}
-
-QColor myTextButton::textColor() const {
-    return m_color;
-}
-
-void myTextButton::setTextFillColor(QColor color) {
-    if (m_color != color) {
-        m_color = color;
-        setTextColor(color);
-        emit textColorChanged();
-    }
 }
 
 void myTextButton::animateTextColor(const QColor &startColor, const QColor &endColor, int duration) {

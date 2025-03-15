@@ -12,14 +12,13 @@
 #include "../../../core/json/json.h"
 #include "../../../core/core.h"
 #include "../animation/myAnimator.h"
-
+#include "../animation/rotatedWidget.h"
 #include <QTimer>
 #include <QPainterPath>
 #include <QMouseEvent>
 #include <QMainWindow>
 #include <QApplication>
 #include <QWidget>
-#include <QGraphicsDropShadowEffect>
 #include <QPainter>
 #include <QPushButton>
 #include <QFontDatabase>
@@ -27,6 +26,10 @@
 #include <QUndoView>
 #include <QLabel>
 #include <QGridLayout>
+#include <QAbstractAnimation>
+#include <QParallelAnimationGroup>
+#include <QGraphicsDropShadowEffect>
+#include <QSequentialAnimationGroup>
 
 class myControls {
 public:
@@ -50,8 +53,8 @@ class myButton : public QPushButton {
     Q_OBJECT
 
 public:
-    myButton(const QString &text, QWidget *parent = nullptr);
-    ~myButton();
+    explicit myButton(const QString &text, QWidget *parent = nullptr);
+    ~myButton() override;
 
     void setSize(QSize size);
     void setSize(int w,int h);
@@ -66,20 +69,10 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
-    Q_PROPERTY(int textSize READ textSize WRITE setTextSize NOTIFY textSizeChanged)
-
-    int textSize() const;
-    void setTextSize(const int &size);
-
-signals:
-    void textSizeChanged();
-
-private:
     controlType type_;
     bool m_isAnimating = false; // 跟踪动画状态
     QGraphicsDropShadowEffect *shadowEffect;
     QPropertyAnimation *colorAnimation;
-    int m_textSize;
 };
 
 // 图标按钮
@@ -96,8 +89,6 @@ public:
     void setControlStyle(controlType type);
     controlType getControlStyle() { return type_; };
 
-    void rotationAnimation(const int &startValue,const int &endValue,int duration);
-
 protected:
     void paintEvent(QPaintEvent *event) override;
     void enterEvent(QEnterEvent *event) override;
@@ -105,19 +96,9 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
 
 private:
-    Q_PROPERTY(qreal rotationAngle READ rotationAngle WRITE setRotationAngle)
-
-    void setRotationAngle(qreal angle);
-    qreal rotationAngle() { return m_rotationAngle; }
     void animateIconColor(const QColor &startColor, const QColor &endColor, int duration);
-
-signals:
-    void rotationAngleChanged();
-
-private:
     controlType type_;
     QIcon m_icon;
-    qreal m_rotationAngle = 0;
     bool m_isAnimating = false; // 跟踪动画状态
 };
 
@@ -144,22 +125,13 @@ public:
     void setTextSize(int pointSize);
     controlType getControlStyle() { return type_; };
 
-private:
-    Q_PROPERTY(QColor textColor READ textColor WRITE setTextFillColor NOTIFY textColorChanged)
-
-    QColor textColor() const;
-    void setTextFillColor(QColor color);
-    void animateTextColor(const QColor &startColor, const QColor &endColor, int duration);
-
-signals:
-    void textColorChanged();
-
 protected:
     void paintEvent(QPaintEvent *event) override;
     void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
 
 private:
+    void animateTextColor(const QColor &startColor, const QColor &endColor, int duration);
     controlType type_;
     QColor m_color;
     QPropertyAnimation *colorAnimation;
@@ -178,6 +150,7 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
 };
+
 class myRoundIconButton : public myRoundButton {
     Q_OBJECT
 
@@ -189,20 +162,6 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-
-private:
-    Q_PROPERTY(QSize sizeIcon READ sizeIcon WRITE setSizeIcon NOTIFY iconSizeChanged)
-
-    QSize sizeIcon() const;
-    void setSizeIcon(const QSize &size);
-
-signals:
-    void iconSizeChanged();
-
-private:
-    bool m_isAnimating = false;
-    QSize m_iconSize;
 };
 
 // ############################
@@ -246,7 +205,7 @@ signals:
 
 private:
     int oldHeight;
-    int oldWidth;
+    int oldContentHeight;
 
     bool isToggle = false;
     bool m_isAnimating = false;
@@ -258,6 +217,7 @@ private:
     QColor m_fontColor;
 
     QLabel *title;
+    rotatedWidget *rotatedToggleButton;
     myIconButton *toggleButton;
     QGraphicsDropShadowEffect *shadowEffect;
     QPropertyAnimation *colorAnimation;
@@ -281,9 +241,6 @@ protected:
     void mouseMoveEvent(QMouseEvent *) override;
     void mousePressEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
-
-private slots:
-    void onCloseButtonClicked();
 
 private:
     bool m_isPressed;

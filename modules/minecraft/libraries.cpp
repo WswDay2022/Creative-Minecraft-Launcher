@@ -10,7 +10,7 @@ void assets::parserLibraries() {
     if (!reader.parse(versionJson_,value)) return;
     Json::Value content = value;
     if (content.empty()) {
-        LogPrint("JSON文件是空的","ERROR");
+        LogPrint("[IO]:JSON文件是空的","ERROR");
         return;
     }
 
@@ -25,11 +25,11 @@ void assets::parserLibraries() {
 
         if (!artifact.empty()) {
             if (!core::isContainsAllCharacters(library["name"].asString(),"natives")) {
-                std::string path = core::formatPath(
-                        core::joinPath(minecraftDirectory_, "libraries\\" + artifact["path"].asString()));
+                std::string path = core::formatPath(core::joinPath(minecraftDirectory_, "libraries\\" + artifact["path"].asString()));
                 Json::Value aLibrary;
                 aLibrary["url"] = artifact["url"].asString();
                 aLibrary["path"] = path;
+                aLibrary["name"] = library["name"].asString();
                 // 如果有rules键值，对其进行解析
                 if (rules.empty()) { libraries_.append(aLibrary); }
                 else if (!rules.empty()) {

@@ -8,12 +8,12 @@ void assets::parserObjects() {
     Json::Value value;
     Json::Reader reader;
     if (!reader.parse(versionJson_,value)) {
-        LogPrint("版本JSON文件内容是空的","ERROR");
+        LogPrint("[IO]:版本JSON文件内容是空的","ERROR");
         return;
     }
     Json::Value content = value;
     if (content.empty()) {
-        LogPrint("JSON文件是空的","ERROR");
+        LogPrint("[IO]:JSON文件是空的","ERROR");
         return;
     }
 
@@ -26,7 +26,7 @@ void assets::parserObjects() {
     if (!core::exist(path)) {
         simpleDownloader downloader;
         if (!downloader.download(url, path)) {
-            LogPrint("下载资源索引文件失败!","ERROR");
+            LogPrint("[DOWNLOADER]:下载资源索引文件失败!","ERROR");
             return;
         }
     }
@@ -34,9 +34,9 @@ void assets::parserObjects() {
     fileReader indexesFile(path);
     indexesFile.readFile();
     const std::string &indexes = indexesFile.getFullContent(indexesFile.getFileContent());
-    LogPrint("资源文件路径:"+path,"INFO");
+    LogPrint("[IO]:资源文件路径:"+path,"INFO");
     if (!reader.parse(indexes, index)) {
-        LogPrint("无法解析资源文件","ERROR");
+        LogPrint("[IO]:无法解析资源文件","ERROR");
         return;
     }
 

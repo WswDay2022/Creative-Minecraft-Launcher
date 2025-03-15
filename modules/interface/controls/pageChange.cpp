@@ -17,5 +17,8 @@ void pageChange::initControl() {
     setStyleSheet("background-color:"+controlTools.lighterColor(core_.themeColor,160).name());
 }
 
-pageChange::~pageChange() {
+void pageChange::changePage(pageBase *page) {
+    addWidget(page);
 }
+
+pageChange::~pageChange() = default;

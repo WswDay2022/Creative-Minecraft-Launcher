@@ -31,7 +31,7 @@ void myTitleBar::initControl() {
 
     m_pButtonMin = new myIconButton(min);
     m_pButtonClose = new myIconButton(close);
-    m_pButtonMin->setControlStyle(CONTROL_ERROR);
+    m_pButtonMin->setControlStyle(CONTROL_WARING);
     m_pButtonClose->setControlStyle(CONTROL_ERROR);
 
     m_pTitleContent->setFixedHeight(BUTTON_HEIGHT);
@@ -42,12 +42,15 @@ void myTitleBar::initControl() {
     m_pButtonMin->setObjectName("hideButton");
     m_pButtonClose->setObjectName("closeButton");
 
-    core core_;core_.globalInit(); // rgb("+core_.themeColor.name()+")
+    static core core_;
+    core_.globalInit(); // rgb("+core_.themeColor.name()+")
     const QString colorStyle = "{background-color:rgb("+core_.themeColor.name()+");border:none;}";
 
     m_pTitleContent->setStyleSheet("#titleContent "+colorStyle);
-    m_pButtonMin->setStyleSheet("#hideButton "+colorStyle);
-    m_pButtonClose->setStyleSheet("#closeButton "+colorStyle);
+    // m_pButtonMin->setStyleSheet("#hideButton "+colorStyle);
+    // m_pButtonClose->setStyleSheet("#closeButton "+colorStyle);
+
+    /*
     QPalette palette = m_pButtonMin->palette();
     QPalette palette1 = m_pButtonClose->palette();
     // m_pTitleContent->setStyleSheet("#titleContent {color:rgb("+core_.fontColor.name()+")}");
@@ -55,6 +58,7 @@ void myTitleBar::initControl() {
     palette1.setColor(QPalette::ButtonText,core_.fontColor);
     m_pButtonMin->setPalette(palette);
     m_pButtonClose->setPalette(palette1);
+     */
 
     myControls controlTools;
     min = controlTools.setIconColor(min,core_.fontColor);
@@ -65,19 +69,13 @@ void myTitleBar::initControl() {
     m_pButtonClose->setIconSize(QSize(14,14));
     m_pButtonMin->setIconSize(QSize(14,14));
 
-    m_pButtonMin->setToolTip(QStringLiteral("最小化"));
-    m_pButtonClose->setToolTip(QStringLiteral("关闭"));
-
     QHBoxLayout* titleBar = new QHBoxLayout(this);
-
     titleBar->addWidget(m_pIcon);
     titleBar->addWidget(m_pTitleContent);
     titleBar->addWidget(m_pButtonMin);
     titleBar->addWidget(m_pButtonClose);
-
     titleBar->setContentsMargins(20, 10, 20, 0);
     titleBar->setSpacing(0);
-
     titleBar->setStretchFactor(m_pTitleContent,0);
     m_pTitleContent->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -86,8 +84,8 @@ void myTitleBar::initControl() {
 }
 
 void myTitleBar::initConnections() {
-    connect(m_pButtonMin, SIGNAL(clicked()), this, SLOT(onButtonMinClicked()));
-    connect(m_pButtonClose, SIGNAL(clicked()), this, SLOT(onButtonCloseClicked()));
+    connect(m_pButtonMin, &QPushButton::clicked, this, &myTitleBar::onButtonMinClicked);
+    connect(m_pButtonClose, &QPushButton::clicked, this, &myTitleBar::onButtonCloseClicked);
 }
 
 void myTitleBar::setBackgroundColor(bool isTransparent) {
@@ -105,10 +103,9 @@ void myTitleBar::setTitleIcon(QString filePath, QSize IconSize) {
 }
 
 void myTitleBar::setTitleContent(QString titleContent, int titleFontSize) {
-    core core_;core_.globalInit();
-    int fontId = QFontDatabase::addApplicationFont("../assets/font.ttf");
-    QFont customFont(QFontDatabase::applicationFontFamilies(fontId).at(0),titleFontSize);
-    m_pTitleContent->setFont(customFont);
+    static core core_;
+    core_.globalInit();
+    m_pTitleContent->setFont(core::getFont());
     m_pTitleContent->setText("<font color="+core_.fontColor.name()+">"+titleContent+"</font>");
     m_titleContent = titleContent;
 }
@@ -118,7 +115,7 @@ void myTitleBar::setTitleWidth(int width) {
 }
 
 void myTitleBar::setTitleRoll() {
-    connect(&m_titleRollTimer, SIGNAL(timeout()), this, SLOT(onRollTitle()));
+    connect(&m_titleRollTimer, &QTimer::timeout, this, &myTitleBar::onRollTitle);
     m_titleRollTimer.start(200);
 }
 

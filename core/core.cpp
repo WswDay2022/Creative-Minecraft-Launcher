@@ -144,3 +144,9 @@ std::string core::getSystemArchitecture() { return QSysInfo::currentCpuArchitect
 bool core::isContainsAllCharacters(const std::string &mainString, const std::string &subString) {
     return mainString.find(subString) != std::string::npos;
 }
+
+QFont core::getFont(int size) {
+    int fontId = QFontDatabase::addApplicationFont("../assets/font.ttf");
+    QFont customFont(QFontDatabase::applicationFontFamilies(fontId).at(0),size);
+    return customFont;
+}

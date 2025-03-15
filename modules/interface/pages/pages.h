@@ -10,9 +10,11 @@
 
 class mainPage : public pageBase {
     Q_OBJECT
+
 public:
     mainPage(QWidget *parent = nullptr);
 
+    // void initPage();
 };
 
 #endif //CMCL_PAGES_H

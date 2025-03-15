@@ -8,6 +8,7 @@
 #include <QStackedWidget>
 #include "../../../core/core.h"
 #include "myControls.h"
+#include "../pages/pageBase.h"
 
 /* 界面切换器 */
 class pageChange : public QStackedWidget {
@@ -17,6 +18,7 @@ public:
     pageChange(QWidget *parent = nullptr);
     ~pageChange();
 
+    void changePage(pageBase *page);
     void initControl();
 };
 

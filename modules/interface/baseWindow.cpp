@@ -3,8 +3,11 @@
 //
 
 #include "baseWindow.h"
-#include "pages/pageBase.h"
-#include <QCursor>
+
+namespace {
+    constexpr int RESIZE_AREA_SIZE = 10;  // 边缘检测区域大小
+    const Qt::CursorShape DEFAULT_CURSOR = Qt::ArrowCursor;
+}
 
 baseWindow::baseWindow(QWidget *parent)
     : QWidget(parent) {
@@ -25,11 +28,12 @@ baseWindow::baseWindow(QWidget *parent)
     height = value["height"].asInt();
     setStyleSheet(core_.getQCssFile());
 
-    QScreen *screen = QGuiApplication::primaryScreen();
-    setWindowTitle(QString::fromStdString(core_.getSettingJson()["launcherLongName"].asString()));
-    setGeometry((screen->geometry().width() - width) / 2,
-                (screen->geometry().height() - height) / 2,
-                width, height);
+    const QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
+    setGeometry(
+        (screenGeometry.width() - width) / 2,
+        (screenGeometry.height() - height) / 2,
+        width, height
+    );
 
     setAttribute(Qt::WA_OpaquePaintEvent);
     setAttribute(Qt::WA_NoSystemBackground);
@@ -48,9 +52,9 @@ void baseWindow::initPageChanger() {
     m_pageChange->move(260,50);
 
     m_pageChange->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding); // 宽度固定，高度自适应
-    auto *base = new pageBase();
-    base->setBaseSize(100,100);
-    base->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    auto *base = new mainPage();
+    //base->setBaseSize(100,100);
+    // base->startPage();
 
     m_pageChange->addWidget(base);
     m_pageChange->setCurrentIndex(0);
@@ -61,11 +65,16 @@ void baseWindow::initPageChanger() {
 void baseWindow::initTitleBar() {
     m_titleBar = new myTitleBar(this);
     m_titleBar->move(0, 0);
-    core core_;core_.globalInit();
+    static core core_;
+    core_.globalInit();
     m_titleBar->setTitleContent(QString::fromStdString(core_.getSettingJson()["launcherLongName"].asString()),12);
 
     connect(m_titleBar, SIGNAL(signalButtonMinClicked()), this, SLOT(onButtonMinClicked()));
     connect(m_titleBar, SIGNAL(signalButtonCloseClicked()), this, SLOT(onButtonCloseClicked()));
+}
+
+void baseWindow::changePage(pageBase *page) {
+    m_pageChange->changePage(page);
 }
 
 void baseWindow::initMenuBar() {
@@ -92,9 +101,14 @@ void baseWindow::onButtonMinClicked() {
 }
 
 void baseWindow::onButtonCloseClicked() {
-    close();
+    auto *fadeAnimation = new QPropertyAnimation(this,"windowOpacity");
+    fadeAnimation->setStartValue(1);
+    fadeAnimation->setEndValue(0);
+    fadeAnimation->setDuration(100);
+    fadeAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+    connect(fadeAnimation,&QPropertyAnimation::finished,[=](){close();});
 }
-
+/*
 void baseWindow::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) { // 左键按下
         isResizing = event->pos().x() >= width() - 10 && event->pos().y() >= height() - 10;
@@ -152,4 +166,125 @@ void baseWindow::mouseReleaseEvent(QMouseEvent *event) {
         isResizing = false; // 结束调整大小
     }
     return QWidget::mouseReleaseEvent(event);
+}
+*/
+void baseWindow::mousePressEvent(QMouseEvent *event) {
+    if (event->button() == Qt::LeftButton) {
+        m_resizeEdge = calculateResizeEdge(event->pos());
+        if (m_resizeEdge != ResizeEdge::None) {
+            m_mousePressPos = event->globalPosition().toPoint();
+            m_windowSize = size();
+            event->accept();
+            return;
+        }
+    }
+    return QWidget::mousePressEvent(event);
+}
+
+void baseWindow::mouseMoveEvent(QMouseEvent *event) {
+    if (m_resizeEdge != ResizeEdge::None) {
+        handleResize(event->globalPosition().toPoint());
+    } else {
+        updateCursorShape(event->pos());
+    }
+    return QWidget::mouseMoveEvent(event);
+}
+
+void baseWindow::mouseReleaseEvent(QMouseEvent *event) {
+    if (event->button() == Qt::LeftButton) {
+        m_resizeEdge = ResizeEdge::None;
+        setCursor(DEFAULT_CURSOR);
+    }
+    return QWidget::mouseReleaseEvent(event);
+}
+
+baseWindow::ResizeEdge baseWindow::calculateResizeEdge(const QPoint &pos) const {
+    const int x = pos.x();
+    const int y = pos.y();
+    const int w = width();
+    const int h = height();
+
+    // 检测边缘和角落
+    const bool left = (x <= RESIZE_AREA_SIZE);
+    const bool right = (x >= w - RESIZE_AREA_SIZE);
+    const bool top = (y <= RESIZE_AREA_SIZE);
+    const bool bottom = (y >= h - RESIZE_AREA_SIZE);
+
+    if (left && top)       return ResizeEdge::TopLeft;
+    if (right && top)      return ResizeEdge::TopRight;
+    if (left && bottom)    return ResizeEdge::BottomLeft;
+    if (right && bottom)   return ResizeEdge::BottomRight;
+    if (left)              return ResizeEdge::Left;
+    if (right)             return ResizeEdge::Right;
+    if (top)               return ResizeEdge::Top;
+    if (bottom)            return ResizeEdge::Bottom;
+
+    return ResizeEdge::None;
+}
+
+void baseWindow::updateCursorShape(const QPoint &pos) {
+    switch (calculateResizeEdge(pos)) {
+        case ResizeEdge::TopLeft:
+        case ResizeEdge::BottomRight:
+            setCursor(Qt::SizeFDiagCursor);
+            break;
+        case ResizeEdge::TopRight:
+        case ResizeEdge::BottomLeft:
+            setCursor(Qt::SizeBDiagCursor);
+            break;
+        case ResizeEdge::Left:
+        case ResizeEdge::Right:
+            setCursor(Qt::SizeHorCursor);
+            break;
+        case ResizeEdge::Top:
+        case ResizeEdge::Bottom:
+            setCursor(Qt::SizeVerCursor);
+            break;
+        default:
+            setCursor(DEFAULT_CURSOR);
+    }
+}
+
+void baseWindow::handleResize(const QPoint &globalMousePos) {
+    const QPoint delta = globalMousePos - m_mousePressPos;
+    QRect newGeometry = geometry();
+
+    switch (m_resizeEdge) {
+        case ResizeEdge::Left:
+            newGeometry.setLeft(newGeometry.left() + delta.x());
+            break;
+        case ResizeEdge::Right:
+            newGeometry.setRight(newGeometry.right() + delta.x());
+            break;
+        case ResizeEdge::Top:
+            newGeometry.setTop(newGeometry.top() + delta.y());
+            break;
+        case ResizeEdge::Bottom:
+            newGeometry.setBottom(newGeometry.bottom() + delta.y());
+            break;
+        case ResizeEdge::TopLeft:
+            newGeometry.setTopLeft(newGeometry.topLeft() + delta);
+            break;
+        case ResizeEdge::TopRight:
+            newGeometry.setTopRight(newGeometry.topRight() + QPoint(delta.x(), delta.y()));
+            break;
+        case ResizeEdge::BottomLeft:
+            newGeometry.setBottomLeft(newGeometry.bottomLeft() + QPoint(delta.x(), delta.y()));
+            break;
+        case ResizeEdge::BottomRight:
+            newGeometry.setBottomRight(newGeometry.bottomRight() + delta);
+            break;
+        default: return;
+    }
+
+    // 限制最小尺寸
+    if (newGeometry.width() < minimumWidth()) {
+        newGeometry.setWidth(minimumWidth());
+    }
+    if (newGeometry.height() < minimumHeight()) {
+        newGeometry.setHeight(minimumHeight());
+    }
+
+    setGeometry(newGeometry);
+    m_mousePressPos = globalMousePos; // 更新基准点
 }

@@ -10,10 +10,13 @@
 #include "../../core/core.h"
 #include "controls/myMainSideBar.h"
 #include "controls/pageChange.h"
+#include "pages/pageBase.h"
 #include <QPainterPath>
 #include <QApplication>
 #include <QPainter>
+#include <QCursor>
 #include <QFile>
+#include "pages/pages.h"
 #include <QPropertyAnimation>
 
 /****
@@ -32,9 +35,27 @@ public:
     ~baseWindow();
 
 private:
+    enum class ResizeEdge {
+        None,
+        Left,
+        Right,
+        Top,
+        Bottom,
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight
+    };
+
+    // 工具函数
+    ResizeEdge calculateResizeEdge(const QPoint &pos) const;
+    void updateCursorShape(const QPoint &pos);
+    void handleResize(const QPoint &globalMousePos);
+
     void initTitleBar();
     void initMenuBar();
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
+    void changePage(pageBase *page);
     void loadStyleSheet();
 
     void initPageChanger();
@@ -53,7 +74,10 @@ private slots:
     void onButtonMinClicked();
     void onButtonCloseClicked();
 
-protected:
+private:
+    ResizeEdge m_resizeEdge = ResizeEdge::None;
+    QPoint m_mousePressPos;
+    QSize m_windowSize;
     myTitleBar* m_titleBar;
     myMainSideBar* m_menuBar;
     pageChange* m_pageChange;

@@ -13,7 +13,7 @@ void launch::init() {
     if (!reader.parse(versionJson_,value)) return;
     Json::Value content = value;
     if (content.empty()) {
-        LogPrint("OTHER","The json is empty.");
+        LogPrint("[IO]:JSON文件是空的","ERROR");
         return;
     }
     mainClass_ = value["mainClass"].asString();

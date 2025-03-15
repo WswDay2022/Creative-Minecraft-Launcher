@@ -53,9 +53,9 @@ void myMainSideBar::initControl() {
     button->setSize(100,50);
 
     connect(button,&QPushButton::clicked,this,[=]() {
-        // myMessageBox *box = new myMessageBox(this->parentWidget(),500,500);
-        // box->show();
-        // box->setControlStyle(CONTROL_WARING);
+        myMessageBox *box = new myMessageBox(this->parentWidget(),500,500);
+        box->show();
+        box->setControlStyle(CONTROL_WARING);
     });
 
     QVBoxLayout *vbox = new QVBoxLayout();

@@ -18,11 +18,13 @@
 #include <QColor>
 #include <QSysInfo>
 #include <mutex>
+#include <qfont.h>
 #include "json/value.h"
 #include "io/fileReader.h"
 #include "consolas.h"
 #include "json/reader.h"
 #include "io/fileWriter.h"
+#include <QFontDatabase>
 
 /* 日志 */
 namespace Log {
@@ -48,9 +50,9 @@ public:
 
     /* 时间获取 */
     tm* getTime();
-    double getNowHour() {return getTime()->tm_hour;}
-    double getNowMinute() {return getTime()->tm_min;}
-    double getNowSecond() {return getTime()->tm_sec;}
+    double getNowHour() { return getTime()->tm_hour; }
+    double getNowMinute() { return getTime()->tm_min; }
+    double getNowSecond() { return getTime()->tm_sec; }
 
     /* 系统信息 */
     static std::string getSystemOSName();
@@ -71,6 +73,7 @@ public:
 
     /* 字符串操作 */
     static bool isContainsAllCharacters(const std::string& mainString, const std::string& subString);
+    static QFont getFont(int size = 10);
 
 private:
     std::string settingFileContent_;

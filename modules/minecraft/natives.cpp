@@ -10,7 +10,7 @@ void assets::parserNatives() {
     if (!reader.parse(versionJson_,value)) return;
     Json::Value content = value;
     if (content.empty()) {
-        LogPrint("JSON文件是空的","ERROR");
+        LogPrint("[IO]:JSON文件是空的","ERROR");
         return;
     }
 

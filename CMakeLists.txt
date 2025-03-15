@@ -22,6 +22,7 @@ set(Qt6_DIR "G:/Qt/6.8.0/mingw_64/lib/cmake/Qt6")
 find_package(Qt6 COMPONENTS
         Core
         Gui
+        Xml
         Widgets
         REQUIRED)
 
@@ -82,8 +83,6 @@ add_executable(CMCL main.cpp
         modules/interface/pages/mainPage.cpp
         modules/interface/pages/pages.h
         core/url/download/simpleDownloader.cpp
-        core/url/download/multiDownloader.cpp
-        core/url/download/downloader.h
         modules/minecraft/download/downloadVersion.cpp
         modules/minecraft/download/downloadAssets.cpp
         modules/minecraft/download/downloadObjects.cpp
@@ -117,25 +116,51 @@ add_executable(CMCL main.cpp
         modules/interface/controls/myContentList.h
         modules/interface/pages/pageBase.cpp
         modules/interface/pages/pageBase.h
-        core/url/download/multiThreadDownloader.cpp
-        core/url/download/multiThreadDownloader.h
-        core/url/download/concurrentDownloader.cpp
-        core/url/download/concurrentDownloader.h
         modules/interface/controls/myRoundButton.cpp
         modules/interface/controls/myTextIconButton.cpp
         modules/interface/controls/myRoundIconButton.cpp
         modules/interface/animation/myAnimator.cpp
         modules/interface/animation/myAnimator.h
+        core/url/download/multiThreadDownloader.cpp
+        core/url/download/multiThreadDownloader.h
+        core/url/webFetcher.cpp
+        core/url/webFetcher.h
+        modules/minecraft/versions/manifestParser.h
+        core/url/HTMLParser.cpp
+        core/url/HTMLParser.h
+        core/io/jarExtractor.cpp
+        core/io/jarExtractor.h
+        core/url/download/concurrentDownloader.cpp
+        core/url/download/concurrentDownloader.h
+        core/url/download/simpleDownloader.h
+        core/url/download/downloaderToolkit.h
+        core/data/unzip/zipExtractor.cpp
+        core/data/unzip/zipExtractor.h
+        modules/minecraft/versions/manifestParser.cpp
+        # core/data/AES256Encryptor.cpp
+        # core/data/AES256Encryptor.h
+        core/integration/pugixml/pugixml.cpp
+        core/integration/pugixml/pugixml.h
+        modules/minecraft/modloader/modCurseForge.cpp
+        modules/minecraft/modloader/modCurseForge.h
+        modules/minecraft/modloader/modModrinth.cpp
+        modules/minecraft/modloader/modModrinth.h
+        modules/interface/animation/rotatedWidget.cpp
+        modules/interface/animation/rotatedWidget.h
 )
 
 find_package(cryptopp CONFIG REQUIRED)
 find_package(CURL REQUIRED)
 find_package(miniz CONFIG REQUIRED)
 
-target_link_libraries(CMCL
+target_link_libraries(CMCL PUBLIC
         Qt::Core
         Qt::Gui
+        Qt::Xml
         Qt::Widgets
+)
+
+target_link_libraries(CMCL PRIVATE
         CURL::libcurl
         miniz::miniz
         cryptopp::cryptopp

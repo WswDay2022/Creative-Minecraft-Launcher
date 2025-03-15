@@ -1,246 +1,183 @@
 //
-// Created by WswDay2022 on 2024/12/21.
+// Created by WswDay2022 on 2025/2/4.
 //
 
 #include "concurrentDownloader.h"
 
-concurrentDownloader::concurrentDownloader(size_t numThreads)
-        : threadCount(numThreads), failedCount(0), running(false) {
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+concurrentDownloader::concurrentDownloader(size_t max_threads)
+    : max_workers(max_threads) {
+    curl_global_init(CURL_GLOBAL_ALL);
 }
 
 concurrentDownloader::~concurrentDownloader() {
+    stop();
     curl_global_cleanup();
 }
 
-void concurrentDownloader::addDownloadTask(const std::string& url, const std::string& savePath) {
-    if (url.empty() || savePath.empty()) {
-        LogPrint("URL或保存路径为空", "ERROR");
-        return;
-    }
-
-    std::lock_guard<std::mutex> lock(queueMutex);
-    aDownloadTask task{url, savePath};
-    taskQueue.emplace(task);
-    condition.notify_one(); // 唤醒线程
+void concurrentDownloader::setMaxSpeed(int64_t speedPerThread) {
+    maxSpeed = speedPerThread;
 }
 
-bool concurrentDownloader::downloadTask(const aDownloadTask& task) {
+void concurrentDownloader::setRetryTimes(int times) {
+    maxRetries = times;
+}
+
+void concurrentDownloader::setVerifySSL(bool verify) {
+    verifySSL = verify;
+}
+
+void concurrentDownloader::setProxy(const std::string &_proxy) {
+    proxy = _proxy;
+}
+
+void concurrentDownloader::addTask(const std::string& url, const std::filesystem::path& save_path) {
+    std::lock_guard<std::mutex> lock(queue_mutex);
+    task_queue.push({url, save_path});
+    queue_cv.notify_one();
+}
+
+void concurrentDownloader::start() {
+    if (running) return;
+    running = true;
+    stop_flag = false;
+    for (size_t i = 0; i < max_workers; ++i) {
+        workers.emplace_back(&concurrentDownloader::workerThread, this);
+    }
+}
+
+void concurrentDownloader::stop() {
+    if (!running) return;
+    stop_flag = true;
+    queue_cv.notify_all();
+    for (auto& t : workers) {
+        if (t.joinable()) t.join();
+    }
+    workers.clear();
+    running = false;
+}
+
+void concurrentDownloader::waitUntilFinished() {
+    std::unique_lock<std::mutex> lock(queue_mutex);
+    queue_cv.wait(lock, [this]{
+        return task_queue.empty() && !running;
+    });
+}
+
+std::vector<concurrentDownloader::FailedTask> concurrentDownloader::getFailedTasks() const {
+    std::lock_guard<std::mutex> lock(failed_mutex);
+    return failed_tasks;
+}
+
+size_t concurrentDownloader::getFailedCount() const {
+    std::lock_guard<std::mutex> lock(failed_mutex);
+    return failed_tasks.size();
+}
+
+void concurrentDownloader::workerThread() {
     CURL* curl = curl_easy_init();
-    core core_; // 初始化核心
-    core_.globalInit();
-
-    const std::string& savePath = task.outputPath;
-    const std::string& url = task.url;
-
-    if (!curl) {
-        LogPrint("初始化CURL句柄失败", "ERROR");
-        return false;
-    }
-
-    std::filesystem::path saveTo(savePath);
-    if (!core::exist(saveTo.parent_path().string())) {
-        LogPrint("未检测到保存路径的父目录，先创建", "INFO");
-        core::createDirectory(saveTo.parent_path().string());
-    }
-
-    std::ofstream outFile(savePath, std::ios::binary | std::ios::trunc); // 覆盖模式以及二进制写入
-    if (!outFile) {
-        LogPrint("未能正常打开输出文件: " + savePath, "ERROR");
-        return false;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str()); // 设置url
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, core_.getSettingJson()["timeout"].asInt());
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &outFile); // 写入到
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeData);
-    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5L);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-    // SSL 验证
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-
-    CURLcode res = curl_easy_perform(curl); // 捕捉CURL状态
-    if (res == CURLE_OK) {
-        if (verifyFile(savePath, getExpectedFileSize(url))) {
-            LogPrint("下载" + url + "成功且验证成功!");
-            curl_easy_cleanup(curl);
-            return true;
-        } else {
-            LogPrint("下载" + url + "成功，但验证失败","ERROR");
-            curl_easy_cleanup(curl);
-            return false;
+    if (!curl) return;
+    while (!stop_flag) {
+        DownloadTask task;
+        {
+            std::unique_lock<std::mutex> lock(queue_mutex);
+            queue_cv.wait(lock, [this]{
+                return !task_queue.empty() || stop_flag;
+            });
+            if (stop_flag) break;
+            if (!task_queue.empty()) {
+                task = std::move(task_queue.front());
+                task_queue.pop();
+            }
         }
-    } else {
-        LogPrint("下载" + url + "文件失败!","ERROR");
+
+        if (task.url.empty()) continue;
+        std::string error;
+        bool success = false;
+        size_t retries = maxRetries;
+        while (retries --> 0 && !stop_flag) {
+            LogPrint("[DOWNLOADER]:开始下载任务 " + task.url);
+            if (downloadFile(task, error)) {
+                success = true;
+                break;
+            }
+        }
+
+        if (!success) {
+            LogPrint("[DOWNLOADER]:下载任务 " + task.url + " 失败，错误信息:" + error,"ERROR");
+            std::lock_guard<std::mutex> lock(failed_mutex);
+            failed_tasks.push_back({std::move(task), error});
+        } else {
+            LogPrint("[DOWNLOADER]:下载任务 " + task.url + " 成功且验证通过");
+        }
+    }
+
+    curl_easy_cleanup(curl);
+}
+
+bool concurrentDownloader::downloadFile(const DownloadTask& task, std::string& error) {
+    std::filesystem::create_directories(task.save_path.parent_path());
+    std::ofstream file(task.save_path, std::ios::binary | std::ios::trunc);
+    if (!file) {
+        error = "打开输出文件失败";
+        return false;
+    }
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        error = "CURL初始化失败";
+        return false;
+    }
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Sec-Fetch-Dest: document");
+    headers = curl_slist_append(headers, "Sec-Fetch-Mode: navigate");
+    headers = curl_slist_append(headers, "Sec-Fetch-Site: same-origin");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_easy_setopt(curl, CURLOPT_URL, task.url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &concurrentDownloader::writeCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip, deflate");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, webFetcher::generateDynamicUserAgent().c_str());
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, verifySSL ? 1L : 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, verifySSL ? 2L : 0L);
+
+    if (!proxy.empty()) curl_easy_setopt(curl, CURLOPT_PROXY, proxy.c_str());
+    if (maxSpeed > 0) curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, maxSpeed);
+
+    CURLcode res = curl_easy_perform(curl);
+    file.close();
+
+    if (res != CURLE_OK) {
+        error = curl_easy_strerror(res);
+        curl_easy_cleanup(curl);
+        std::filesystem::remove(task.save_path);
+        return false;
+    }
+
+    // 验证文件大小
+    double dl_size;
+    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &dl_size);
+    size_t actual_size = std::filesystem::file_size(task.save_path);
+
+    if (actual_size != static_cast<size_t>(dl_size)) {
+        error = "文件大小不匹配";
+        std::filesystem::remove(task.save_path);
         curl_easy_cleanup(curl);
         return false;
     }
 
-}
-
-void concurrentDownloader::setRetryCount(size_t numRetries) {
-    retryCount = numRetries;
-}
-
-bool concurrentDownloader::verifyFile(const std::string& filePath, long expectedSize) {
-    if (!std::filesystem::exists(filePath)) {
-        LogPrint("文件不存在: " + filePath, "ERROR");
-        return false;
-    }
-    std::ifstream file(filePath, std::ios::binary);
-    if (!file) {
-        LogPrint("打开文件失败!", "ERROR");
-        return false;
-    }
-    file.seekg(0, std::ios::end);
-    std::streamsize actualSize = file.tellg();
-    LogPrint("实际文件大小为: " + std::to_string(actualSize));
-    if (actualSize != expectedSize) {
-        LogPrint("文件完整性验证失败，期望大小: " + std::to_string(expectedSize) + ", 实际大小: " + std::to_string(actualSize), "WARNING");
-        return false;
-    }
+    curl_easy_cleanup(curl);
     return true;
 }
 
-long concurrentDownloader::getExpectedFileSize(const std::string& url) {
-    CURL* tempCurl = curl_easy_init();
-    if (!tempCurl) {
-        LogPrint("无法初始化CURL以获取文件大小", "ERROR");
-        return -1;
-    }
-
-    curl_easy_setopt(tempCurl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(tempCurl, CURLOPT_NOBODY, 1L); // 不下载主体
-    curl_easy_setopt(tempCurl, CURLOPT_HEADER, 1L); // 检索头信息
-
-    double contentLength;
-    CURLcode res = curl_easy_perform(tempCurl);
-    if (res != CURLE_OK || curl_easy_getinfo(tempCurl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &contentLength) != CURLE_OK || contentLength <= 0) {
-        LogPrint("无法获取文件大小，URL: " + url, "ERROR");
-        curl_easy_cleanup(tempCurl);
-        return -1;
-    }
-
-    LogPrint("获取文件: " + url + "的大小为:" + std::to_string(contentLength));
-    curl_easy_cleanup(tempCurl);
-    return static_cast<long>(contentLength);
-}
-
-void concurrentDownloader::workThread() {
-    while (running) {
-        aDownloadTask task;
-        {
-            std::unique_lock<std::mutex> lock(queueMutex);
-            condition.wait(lock, [this] { return !taskQueue.empty() || !running; });
-            if (!running) {
-                return; // 如果停止标志为 false，退出线程
-            }
-            if (taskQueue.empty()) {
-                continue; // 如果队列为空，继续等待
-            }
-            task = taskQueue.front();
-            taskQueue.pop();
-        }
-        if (!downloadTask(task)) {
-            failedQueue.push(task);
-            ++failedCount;
-        }
-    }
-}
-
-void concurrentDownloader::waitAllTasks() {
-    for (auto& thread : workThreads) {
-        if (thread.joinable()) {
-            thread.join(); // 等待每个线程完成
-        }
-    }
-}
-
-void concurrentDownloader::startAllTasks() {
-    running = true;
-    for (size_t i = 0; i < threadCount; ++i) {
-        workThreads.emplace_back(&concurrentDownloader::workThread, this);
-    }
-}
-
-size_t concurrentDownloader::writeData(void* buffer, size_t size, size_t nmemb, std::ofstream* stream) {
-    size_t totalBytes = size * nmemb;
-    if (stream && stream->is_open()) {
-        stream->write(static_cast<char*>(buffer), totalBytes);
-        if (!stream->good()) {
-            LogPrint("写入文件失败!", "ERROR");
-            return 0;
-        }
-    } else {
-        LogPrint("输出流未打开!", "ERROR");
-        return 0;
-    }
-    return totalBytes;
-}
-
-void concurrentDownloader::stopAllTasks() {
-    running = false; // 设置标志位为 false
-    condition.notify_all(); // 唤醒所有线程
-}
-
-bool concurrentDownloader::verifyDownloadTasks() {
-    std::vector<bool> allow;
-    int goodTask = 0;
-    int failedTask = 0;
-
-    std::lock_guard<std::mutex> lock(queueMutex);
-    std::queue<aDownloadTask> tempQueue = taskQueue;
-    while (!tempQueue.empty()) {
-        const aDownloadTask& task = tempQueue.front();
-        if (verifyFile(task.outputPath, getExpectedFileSize(task.url))) {
-            allow.push_back(true);
-            goodTask++;
-        } else {
-            failedQueue.push(task);
-            allow.push_back(false);
-            failedTask++;
-        }
-        tempQueue.pop();
-    }
-
-    LogPrint("验证完毕! 一共有" + std::to_string(goodTask) + "任务通过验证, " + std::to_string(failedTask) + "个任务没有通过验证!");
-    return std::all_of(allow.begin(), allow.end(), [](bool val) { return val; });
-}
-
-void concurrentDownloader::retryFailedTasks() {
-    std::queue<aDownloadTask> alsoFailedQueue;
-    while (running) {
-        aDownloadTask task;
-        {
-            std::unique_lock<std::mutex> lock(queueMutex);
-            condition.wait(lock, [this] { return !failedQueue.empty() || !running; });
-            if (!running) {
-                return;
-            }
-            if (failedQueue.empty()) {
-                continue;
-            }
-            task = failedQueue.front();
-            failedQueue.pop();
-        }
-        for (size_t i = 0; i < retryCount; ++i) {
-            LogPrint("正在重试第" + std::to_string(i + 1) + "次: " + task.url, "INFO");
-            if (downloadTask(task)) {
-                LogPrint("重试下载: " + task.url + "成功!");
-                break;
-            } else if (i == retryCount - 1) {
-                LogPrint("重试: " + task.url + " 已达到最大重试次数，无需再次尝试。", "ERROR");
-                alsoFailedQueue.push(task);
-                ++failedCount;
-            }
-        }
-    }
-    std::lock_guard<std::mutex> lock(queueMutex);
-    while (!alsoFailedQueue.empty()) {
-        failedQueue.push(alsoFailedQueue.front());
-        alsoFailedQueue.pop();
-    }
+size_t concurrentDownloader::writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
+    std::ofstream* file = static_cast<std::ofstream*>(userdata);
+    if (!file || !file->is_open()) return 0;
+    size_t realSize = size * nmemb;
+    file->write(ptr, realSize);
+    return realSize;
 }

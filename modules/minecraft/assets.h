@@ -10,8 +10,8 @@
 #include "../../core/json/value.h"
 #include "../../core/core.h"
 #include "../../core/consolas.h"
-#include "../../core/url/download/downloader.h"
 #include "../../core/io/fileReader.h"
+#include "../../core/url/download/simpleDownloader.h"
 
 using namespace Log;
 

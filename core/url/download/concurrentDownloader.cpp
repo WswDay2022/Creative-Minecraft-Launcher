@@ -159,11 +159,10 @@ bool concurrentDownloader::downloadFile(const DownloadTask& task, std::string& e
     }
 
     // 验证文件大小
-    double dl_size;
-    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &dl_size);
-    size_t actual_size = std::filesystem::file_size(task.save_path);
-
-    if (actual_size != static_cast<size_t>(dl_size)) {
+    int64_t dl_size;
+    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &dl_size);
+    auto actual_size = std::filesystem::file_size(task.save_path);
+    if (actual_size != dl_size) {
         error = "文件大小不匹配";
         std::filesystem::remove(task.save_path);
         curl_easy_cleanup(curl);

@@ -579,7 +579,6 @@ bool multiThreadDownloader::downloadPart(DownloadTask& task) {
     if (!curl) return false;
 
     std::ofstream outFile(task.outputPath.string().c_str(), std::ios::binary | std::ios::trunc); // 覆盖模式以及二进制写入
-    // FILE* fp = fopen(task.outputPath.string().c_str(), "ab");
     LogPrint("[DOWNLOADER]:正在下载第 " + std::to_string(task.partNumber+1) + " 部分文件");
     if (!outFile) {
         curl_easy_cleanup(curl);
@@ -614,12 +613,16 @@ bool multiThreadDownloader::downloadPart(DownloadTask& task) {
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
     CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) remove(task.outputPath.string().c_str());
+    if (res != CURLE_OK) {
+        std::string ec = curl_easy_strerror(res);
+        LogPrint("[DOWNLOADER]:下载第 " + std::to_string(task.partNumber+1) + " 部分失败","ERROR");
+        LogPrint("[DOWNLOADER]:失败信息: " + ec,"ERROR");
+        remove(task.outputPath.string().c_str());
+    }
     if (res == CURLE_OK) LogPrint("[DOWNLOADER]:下载第 " + std::to_string(task.partNumber+1) + " 部分完成");
 
     outFile.close();
     curl_easy_cleanup(curl);
-
     return res == CURLE_OK;
 }
 
@@ -728,6 +731,13 @@ int multiThreadDownloader::curlProgressCallback(void* clientp, curl_off_t dltota
 }
 
 bool multiThreadDownloader::verifyFile(std::string outputPath) {
-    auto fileSize = std::filesystem::file_size(outputPath);
-    return totalSize == fileSize;
+    std::error_code ec;
+    auto fileSize = std::filesystem::file_size(outputPath, ec);
+    if (ec) {
+        LogPrint("[VERIFY]:获取文件大小失败: " + ec.message(), "ERROR");
+        return false;
+    }
+    LogPrint("[VERIFY]:网络请求文件大小(Byte):" + std::to_string(totalSize));
+    LogPrint("[VERIFY]:实际文件大小(Byte):" + std::to_string(fileSize));
+    return fileSize == totalSize;
 }

@@ -55,16 +55,27 @@ void Log::cleanLogFile() {
 void core::globalInit() {
     readCSSFile();
     readSettingFile();
-    QColor fontColor_(
-            getSettingJson()["fontColor"][0].asInt(),
-            getSettingJson()["fontColor"][1].asInt(),
-            getSettingJson()["fontColor"][2].asInt());
+
+    int r1 = getSettingJson()["fontColor"][0].asInt();
+    int g1 = getSettingJson()["fontColor"][1].asInt();
+    int b1 = getSettingJson()["fontColor"][2].asInt();
+    int r2 = getSettingJson()["themeColor"][0].asInt();
+    int g2 = getSettingJson()["themeColor"][1].asInt();
+    int b2 = getSettingJson()["themeColor"][2].asInt();
+
+    std::string r1s = std::to_string(r1);
+    std::string g1s = std::to_string(g1);
+    std::string b1s = std::to_string(b1);
+    std::string r2s = std::to_string(r2);
+    std::string g2s = std::to_string(g2);
+    std::string b2s = std::to_string(b2);
+
+    QColor fontColor_(r1,g1,b1);
     fontColor = fontColor_;
-    QColor themeColor_(
-            getSettingJson()["themeColor"][0].asInt(),
-            getSettingJson()["themeColor"][1].asInt(),
-            getSettingJson()["themeColor"][2].asInt());
+    QColor themeColor_(r2,g2,b2);
     themeColor = themeColor_;
+    fontRGBColor = r1s + "," + g1s + "," + b1s;
+    themeRGBColor = r2s + "," + g2s + "," + b2s;
 }
 
 void core::readSettingFile() {

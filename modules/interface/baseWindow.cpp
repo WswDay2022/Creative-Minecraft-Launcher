@@ -5,7 +5,7 @@
 #include "baseWindow.h"
 
 namespace {
-    constexpr int RESIZE_AREA_SIZE = 10;  // 边缘检测区域大小
+    constexpr int RESIZE_AREA_SIZE = 12;  // 边缘检测区域大小
     const Qt::CursorShape DEFAULT_CURSOR = Qt::ArrowCursor;
 }
 
@@ -18,7 +18,7 @@ baseWindow::baseWindow(QWidget *parent)
     initTitleBar();
     initMenuBar();
     initPageChanger();
-
+    setAttribute(Qt::WA_TransparentForMouseEvents, false);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     core core_;core_.globalInit();
@@ -34,6 +34,8 @@ baseWindow::baseWindow(QWidget *parent)
         (screenGeometry.height() - height) / 2,
         width, height
     );
+
+    setMinimumSize(700,400);
 
     setAttribute(Qt::WA_OpaquePaintEvent);
     setAttribute(Qt::WA_NoSystemBackground);
@@ -64,7 +66,9 @@ void baseWindow::initPageChanger() {
 
 void baseWindow::initTitleBar() {
     m_titleBar = new myTitleBar(this);
-    m_titleBar->move(0, 0);
+    m_titleBar->move(10, 10);
+    m_titleBar->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    m_titleBar->setTitleWidth(this->width());
     static core core_;
     core_.globalInit();
     m_titleBar->setTitleContent(QString::fromStdString(core_.getSettingJson()["launcherLongName"].asString()),12);
@@ -97,77 +101,21 @@ void baseWindow::loadStyleSheet() {
 }
 
 void baseWindow::onButtonMinClicked() {
-    showMinimized();
+    myAnimator animator(100);
+    auto *fadeAnimation = animator.windowOpacityAnimation(this,1,0,true);
+    connect(fadeAnimation,&QPropertyAnimation::finished,[=](){
+        showMinimized();
+        setWindowOpacity(1);
+    });
+
 }
 
 void baseWindow::onButtonCloseClicked() {
-    auto *fadeAnimation = new QPropertyAnimation(this,"windowOpacity");
-    fadeAnimation->setStartValue(1);
-    fadeAnimation->setEndValue(0);
-    fadeAnimation->setDuration(100);
-    fadeAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+    myAnimator animator(100);
+    auto *fadeAnimation = animator.windowOpacityAnimation(this,1,0,true);
     connect(fadeAnimation,&QPropertyAnimation::finished,[=](){close();});
 }
-/*
-void baseWindow::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) { // 左键按下
-        isResizing = event->pos().x() >= width() - 10 && event->pos().y() >= height() - 10;
-        if (isResizing) { // 如果处于调整边框范围内
-            mousePressPos = event->globalPosition().toPoint();
-            windowSize = size();
-            event->accept();
-        }
-    }
-    return QWidget::mousePressEvent(event);
-}
 
-void baseWindow::mouseMoveEvent(QMouseEvent *event) {
-    if (isResizing) {
-        // resize the window
-        int dx = event->globalPosition().toPoint().x() - mousePressPos.x();
-        int dy = event->globalPosition().toPoint().y() - mousePressPos.y();
-        setGeometry(x(), y(), windowSize.width() + dx, windowSize.height() + dy);
-    } else {
-        const int resizeAreaSize = 10;
-        if (event->pos().x() >= width() - resizeAreaSize && event->pos().y() >= height() - resizeAreaSize) {
-            // 右下角
-            setCursor(Qt::SizeBDiagCursor);
-        } else if (event->pos().x() < resizeAreaSize && event->pos().y() < resizeAreaSize) {
-            // 左上角
-            setCursor(Qt::SizeFDiagCursor);
-        } else if (event->pos().x() < resizeAreaSize && event->pos().y() >= height() - resizeAreaSize) {
-            // 左下角
-            setCursor(Qt::SizeBDiagCursor);
-        } else if (event->pos().x() >= width() - resizeAreaSize && event->pos().y() < resizeAreaSize) {
-            // 右上角
-            setCursor(Qt::SizeFDiagCursor);
-        } else if (event->pos().x() < resizeAreaSize) {
-            // 左边缘
-            setCursor(Qt::SizeHorCursor);
-        } else if (event->pos().x() >= width() - resizeAreaSize) {
-            // 右边缘
-            setCursor(Qt::SizeHorCursor);
-        } else if (event->pos().y() < resizeAreaSize) {
-            // 上边缘
-            setCursor(Qt::SizeVerCursor);
-        } else if (event->pos().y() >= height() - resizeAreaSize) {
-            // 下边缘
-            setCursor(Qt::SizeVerCursor);
-        } else {
-            // 默认光标
-            setCursor(Qt::ArrowCursor);
-        }
-    }
-    return QWidget::mouseMoveEvent(event);
-}
-
-void baseWindow::mouseReleaseEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
-        isResizing = false; // 结束调整大小
-    }
-    return QWidget::mouseReleaseEvent(event);
-}
-*/
 void baseWindow::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         m_resizeEdge = calculateResizeEdge(event->pos());
@@ -188,6 +136,15 @@ void baseWindow::mouseMoveEvent(QMouseEvent *event) {
         updateCursorShape(event->pos());
     }
     return QWidget::mouseMoveEvent(event);
+}
+
+void baseWindow::enterEvent(QEnterEvent *event) {
+    if (m_resizeEdge != ResizeEdge::None) {
+        handleResize(event->globalPosition().toPoint());
+    } else {
+        updateCursorShape(event->pos());
+    }
+    return QWidget::enterEvent(event);
 }
 
 void baseWindow::mouseReleaseEvent(QMouseEvent *event) {

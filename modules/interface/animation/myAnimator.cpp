@@ -27,7 +27,6 @@ QPropertyAnimation* myAnimator::scaleAnimation(QWidget *parent,const QSize &star
         endSize.height()
     );
     animation->setEndValue(endRect);
-
     animation->setEasingCurve(QEasingCurve::Linear);
     if (start) animation->start(startMode);
     return animation;
@@ -59,6 +58,18 @@ QPropertyAnimation* myAnimator::opacityAnimation(QWidget *parent,const double &s
     animation->setTargetObject(&effect);
     animation->setDuration(m_duration);
     animation->setParent(&effect);
+    animation->setEndValue(endValue);
+    animation->setEasingCurve(QEasingCurve::Linear);
+    if (start) animation->start(startMode);
+    return animation;
+}
+
+QPropertyAnimation *myAnimator::windowOpacityAnimation(QWidget *parent, const double &startValue, const double &endValue, bool start,QAbstractAnimation::DeletionPolicy startMode) const {
+    if (parent == nullptr) return nullptr;
+    auto *animation = new QPropertyAnimation(parent,"windowOpacity");
+    animation->setStartValue(startValue);
+    animation->setDuration(m_duration);
+    animation->setParent(parent);
     animation->setEndValue(endValue);
     animation->setEasingCurve(QEasingCurve::Linear);
     if (start) animation->start(startMode);

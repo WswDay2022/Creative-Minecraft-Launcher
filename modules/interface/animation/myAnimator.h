@@ -33,6 +33,7 @@ public:
 
     void setDuration(int duration);
 
+    QPropertyAnimation *windowOpacityAnimation(QWidget *parent,const double &startValue,const double &endValue,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
     QPropertyAnimation *opacityAnimation(QWidget *parent,const double &startValue,const double &endValue,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
     QPropertyAnimation *scaleAnimation(QWidget *parent,const QSize &startSize,const QSize &endSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
     QPropertyAnimation *scaleAnimation(QWidget *parent,const int &scaleSize,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
@@ -40,7 +41,6 @@ public:
     QPropertyAnimation *rotateAnimation(QWidget *parent,const int &startDeg,const int &endDeg,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
     QPropertyAnimation *fixedHeightAnimation(QWidget *parent,const int &startHeight, const int &endHeight, bool start, QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
     QPropertyAnimation *fixedWidthAnimation(QWidget *parent,const int &startWidth,const int &endWidth,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
-
     QPropertyAnimation *fontColorAnimation(QWidget *parent,const QColor &startColor,const QColor &endColor,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
     QPropertyAnimation *fontSizeAnimation(QWidget *parent, const int &startPointSize, const int &endPointSize, bool start, QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;
     QPropertyAnimation *iconColorButtonAnimation(QPushButton *button,const QColor &startColor,const QColor &endColor,bool start,QAbstractAnimation::DeletionPolicy startMode = QAbstractAnimation::DeleteWhenStopped) const;

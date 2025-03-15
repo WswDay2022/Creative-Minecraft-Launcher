@@ -62,6 +62,8 @@ public:
     /* 一些常量 */
     QColor fontColor;
     QColor themeColor;
+    std::string themeRGBColor;
+    std::string fontRGBColor;
     QColor warnColor = QColor(200,175,90);
     QColor errColor = QColor(220,70,70);
 

@@ -14,10 +14,25 @@ myTitleBar::myTitleBar(QWidget *parent)
         , m_isPressed(false)
         , m_windowBorderWidth(0)
         , m_isTransparent(false) {
-    setBackgroundColor();
+    setObjectName("myTitleBar");
+    static core core_;
+    setStyleSheet("background-color:rgb(" + QString::fromStdString(core_.themeRGBColor) + ");");
+
+
+    //setBackgroundColor();
+
     initControl();
     initConnections();
+    setAutoFillBackground(true);
+
+    core_.globalInit(); // rgb("+core_.themeColor.name()+")
     loadStyleSheet();
+    setFixedHeight(50);
+    setMinimumWidth(700-20);
+    ;
+    //setStyleSheet("#myTitleBar {background-color:rgb(" + core_.themeColor.name() + ");}");
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //setAttribute(Qt::WA_TransparentForMouseEvents, false);
 }
 
 myTitleBar::~myTitleBar() {}
@@ -71,15 +86,15 @@ void myTitleBar::initControl() {
 
     QHBoxLayout* titleBar = new QHBoxLayout(this);
     titleBar->addWidget(m_pIcon);
+    titleBar->setContentsMargins(0,0,0,0);
     titleBar->addWidget(m_pTitleContent);
     titleBar->addWidget(m_pButtonMin);
     titleBar->addWidget(m_pButtonClose);
-    titleBar->setContentsMargins(20, 10, 20, 0);
+    //titleBar->setContentsMargins(10, 10, 10, 0);
     titleBar->setSpacing(0);
     titleBar->setStretchFactor(m_pTitleContent,0);
     m_pTitleContent->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-    this->setFixedHeight(TITLE_HEIGHT);
     this->setWindowFlags(Qt::FramelessWindowHint);
 }
 
@@ -94,7 +109,6 @@ void myTitleBar::setBackgroundColor(bool isTransparent) {
     m_colorG = core_.getSettingJson()["themeColor"][1].asInt();
     m_colorB = core_.getSettingJson()["themeColor"][2].asInt();
     m_isTransparent = isTransparent;
-    update();
 }
 
 void myTitleBar::setTitleIcon(QString filePath, QSize IconSize) {
@@ -133,7 +147,8 @@ void myTitleBar::getRestoreInfo(QPoint& point, QSize& size) {
     size = m_restoreSize;
 }
 
-void myTitleBar::paintEvent(QPaintEvent *event) {
+void paintEvent(QPaintEvent *event) {
+    /*
     if (!m_isTransparent) {
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
@@ -147,8 +162,8 @@ void myTitleBar::paintEvent(QPaintEvent *event) {
 
     if (this->width() != (this->parentWidget()->width() - m_windowBorderWidth)) {
         this->setFixedWidth(this->parentWidget()->width() - m_windowBorderWidth);
-    }
-    QWidget::paintEvent(event);
+    }*/
+    // QWidget::paintEvent(event);
 }
 
 void myTitleBar::mouseDoubleClickEvent(QMouseEvent *event) {

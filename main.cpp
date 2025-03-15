@@ -34,8 +34,9 @@ int main(int argc, char *argv[]) {
     fileReader reader("G:\\Users\\wsz\\Desktop\\新建文本文档 (4).html");
     reader.readFile();
 
-    std::string url = "https://software.download.prss.microsoft.com/dbazure/Win11_24H2_Pro_Chinese_Simplified_x64.iso?t=faca0af0-946a-43b6-a844-d372e1122039&P1=1742096610&P2=601&P3=2&P4=dMpdcw%2fqxAPHLugtbltpw00MFoev928TWo4WjjGeUx1q62G9q2a1v0rvjGL9o7f42CfNBDBQFie9rECsTxZPJWAJWoFhO2gdqbgWudRjhTl9E%2fSLNl4edOCWgf8Bgqrk90r%2bRwujLafcB3odlTsFA4ERVc7Jot5udBl1FsOxR95TL2CxmTDpNLl8VbdotESInVb5yylS5i075jCm6rqApmjQCnYzWx5rdARS9bbGUlSTt1EDvtVeZNurOECqUP7qpHNWqSNOZ5cfux2dfGNHBRZcfRE%2bGrHbzgk1nPPeGy1o%2f%2f6WWl8MrCfy%2bPwwJiiM6nVyQyjVijB0%2fgx4knxfSg%3d%3d";
-    std::string path = "G:\\Users\\wsz\\Desktop\\testab\\win11.iso";
+    // std::string url = "https://software.download.prss.microsoft.com/dbazure/Win11_24H2_Pro_Chinese_Simplified_x64.iso?t=faca0af0-946a-43b6-a844-d372e1122039&P1=1742096610&P2=601&P3=2&P4=dMpdcw%2fqxAPHLugtbltpw00MFoev928TWo4WjjGeUx1q62G9q2a1v0rvjGL9o7f42CfNBDBQFie9rECsTxZPJWAJWoFhO2gdqbgWudRjhTl9E%2fSLNl4edOCWgf8Bgqrk90r%2bRwujLafcB3odlTsFA4ERVc7Jot5udBl1FsOxR95TL2CxmTDpNLl8VbdotESInVb5yylS5i075jCm6rqApmjQCnYzWx5rdARS9bbGUlSTt1EDvtVeZNurOECqUP7qpHNWqSNOZ5cfux2dfGNHBRZcfRE%2bGrHbzgk1nPPeGy1o%2f%2f6WWl8MrCfy%2bPwwJiiM6nVyQyjVijB0%2fgx4knxfSg%3d%3d";
+    std::string url = "https://scpfoundation.app/scp/reader/all/latest/app-all-prod-release.apk?utm_source=scpfoundation.app&utm_medium=directLink&utm_campaign=landing";
+    std::string path = "G:\\Users\\wsz\\Desktop\\testab\\win11.apk";
 
     manifestParser list(repoType::FASTER_REPO);
     // list.downloadMinecraftManifest("G:\\DownloadTest\\manifest.json");
@@ -55,7 +56,7 @@ int main(int argc, char *argv[]) {
     // download.downloadObjects();
     */
 
-    multiThreadDownloader downloader(10);
+    multiThreadDownloader downloader(5);
     downloader.download(url,path);
 
     QApplication app(argc,argv); // 主窗口程序

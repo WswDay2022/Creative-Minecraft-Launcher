@@ -34,7 +34,6 @@ void myContentList::initControl() {
         "QScrollBar:vertical { width: 10px; border-bottom-right-radius: 6px; }"
         "QScrollBar::groove:vertical { background: lightgray; border-bottom-right-radius: 6px; }"
         "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { background: none; border-bottom-right-radius: 6px; }"
-
     );
 
 }
@@ -45,6 +44,32 @@ void myContentList::addAnCard(myContentCard *card) {
 
 void myContentList::addControl(QWidget *widget) {
     contentList->addWidget(widget);
+}
+
+void myContentList::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    myControls controlTools;
+    static core core_;
+    core_.globalInit();
+    painter.setBrush(controlTools.lighterColor(core_.themeColor,160));
+
+    QPainterPath pathBack;
+    QRect rect(0, 0, this->width(), this->height());
+    pathBack.moveTo(rect.topLeft());
+    pathBack.lineTo(rect.right() - 12, rect.top());
+    QRectF cornerArcRect(
+            rect.right() - 12,
+            rect.bottom() - 12,
+            12,12
+    );
+    pathBack.arcTo(cornerArcRect, 0, 90);
+    pathBack.lineTo(rect.left(), rect.bottom());
+    pathBack.closeSubpath();
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.fillPath(pathBack, QBrush(controlTools.lighterColor(core_.themeColor,160)));
+    return QScrollArea::paintEvent(event);
 }
 
 void myContentList::loadWidget() {

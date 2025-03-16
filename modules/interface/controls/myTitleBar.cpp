@@ -28,10 +28,10 @@ myTitleBar::myTitleBar(QWidget *parent)
     core_.globalInit(); // rgb("+core_.themeColor.name()+")
     loadStyleSheet();
     setFixedHeight(50);
-    setMinimumWidth(700-20);
+    //setMinimumWidth(700-20);
     ;
     //setStyleSheet("#myTitleBar {background-color:rgb(" + core_.themeColor.name() + ");}");
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     //setAttribute(Qt::WA_TransparentForMouseEvents, false);
 }
 
@@ -86,11 +86,10 @@ void myTitleBar::initControl() {
 
     QHBoxLayout* titleBar = new QHBoxLayout(this);
     titleBar->addWidget(m_pIcon);
-    titleBar->setContentsMargins(0,0,0,0);
+    titleBar->setContentsMargins(10,0,10,0);
     titleBar->addWidget(m_pTitleContent);
     titleBar->addWidget(m_pButtonMin);
     titleBar->addWidget(m_pButtonClose);
-    //titleBar->setContentsMargins(10, 10, 10, 0);
     titleBar->setSpacing(0);
     titleBar->setStretchFactor(m_pTitleContent,0);
     m_pTitleContent->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -147,23 +146,18 @@ void myTitleBar::getRestoreInfo(QPoint& point, QSize& size) {
     size = m_restoreSize;
 }
 
-void paintEvent(QPaintEvent *event) {
-    /*
-    if (!m_isTransparent) {
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setBrush(QColor(m_colorR, m_colorG, m_colorB));
+void myTitleBar::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(QColor(m_colorR, m_colorG, m_colorB));
 
-        QPainterPath pathBack;
-        pathBack.addRoundedRect(QRect(0, 0, this->width(), this->height()+10).adjusted(10,10,-10,10), 10, 10);
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.fillPath(pathBack, QBrush(QColor(m_colorR, m_colorG, m_colorB)));
-    }
-
-    if (this->width() != (this->parentWidget()->width() - m_windowBorderWidth)) {
-        this->setFixedWidth(this->parentWidget()->width() - m_windowBorderWidth);
-    }*/
-    // QWidget::paintEvent(event);
+    QPainterPath pathBack;
+    static core core_;
+    core_.globalInit();
+    pathBack.addRoundedRect(QRect(0, 0, this->width(), this->height()+10), 10, 10);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.fillPath(pathBack, QBrush(core_.themeColor));
+    return QWidget::paintEvent(event);
 }
 
 void myTitleBar::mouseDoubleClickEvent(QMouseEvent *event) {

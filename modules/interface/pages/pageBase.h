@@ -14,16 +14,17 @@ class pageBase : public QWidget {
     Q_OBJECT
 
 public:
-    pageBase(QWidget *parent = nullptr);
+    explicit pageBase(QWidget *parent = nullptr);
     ~pageBase();
 
     void initControls();
-    void initPage();
 
     void startPage();
     void closePage();
 
 protected:
+    void paintEvent(QPaintEvent *event) override;
+
     QHBoxLayout *mainLayout_;
     myContentList *list;
 };

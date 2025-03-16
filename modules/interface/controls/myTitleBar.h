@@ -33,7 +33,7 @@ class myTitleBar : public QWidget {
     Q_OBJECT
 
 public:
-    myTitleBar(QWidget *parent);
+    myTitleBar(QWidget *parent = nullptr);
     ~myTitleBar();
 
     void setBackgroundColor(bool isTransparent = false);
@@ -46,7 +46,7 @@ public:
     void getRestoreInfo(QPoint &point, QSize &size);
 
 protected:
-    // void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;

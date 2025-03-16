@@ -23,6 +23,9 @@ public:
     void addControl(QWidget *widget);
     void loadWidget();
 
+protected:
+    void paintEvent(QPaintEvent *event) override;
+
 private:
     QVBoxLayout *contentList;
     QWidget *contentWidget;

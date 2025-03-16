@@ -14,7 +14,7 @@ class mainPage : public pageBase {
 public:
     mainPage(QWidget *parent = nullptr);
 
-    // void initPage();
+    void initPage();
 };
 
 #endif //CMCL_PAGES_H

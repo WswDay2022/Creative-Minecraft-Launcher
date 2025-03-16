@@ -147,6 +147,8 @@ add_executable(CMCL main.cpp
         modules/minecraft/modloader/modModrinth.h
         modules/interface/animation/rotatedWidget.cpp
         modules/interface/animation/rotatedWidget.h
+        modules/interface/animation/myPainter.cpp
+        modules/interface/animation/myPainter.h
 )
 
 find_package(cryptopp CONFIG REQUIRED)

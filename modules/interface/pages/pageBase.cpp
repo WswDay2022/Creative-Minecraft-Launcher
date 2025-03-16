@@ -16,7 +16,6 @@ void pageBase::initControls() {
     mainLayout_->setContentsMargins(0,0,0,0);
     mainLayout_->setSpacing(0);
     list = new myContentList();
-    initPage();
     list->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     mainLayout_->addWidget(list);
     setLayout(mainLayout_);
@@ -69,8 +68,30 @@ void pageBase::closePage() {
     }
 }
 
-void pageBase::initPage() {
+void pageBase::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    myControls controlTools;
+    static core core_;
+    core_.globalInit();
+    painter.setBrush(controlTools.lighterColor(core_.themeColor,160));
 
+    QPainterPath pathBack;
+    QRect rect(0, 0, this->width(), this->height());
+    pathBack.moveTo(rect.topLeft());
+    pathBack.lineTo(rect.right() - 12, rect.top());
+    QRectF cornerArcRect(
+            rect.right() - 12,
+            rect.bottom() - 12,
+            12,12
+    );
+    pathBack.arcTo(cornerArcRect, 0, 90);
+    pathBack.lineTo(rect.left(), rect.bottom());
+    pathBack.closeSubpath();
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.fillPath(pathBack, QBrush(controlTools.lighterColor(core_.themeColor,160)));
+    return QWidget::paintEvent(event);
 }
 
 pageBase::~pageBase() = default;

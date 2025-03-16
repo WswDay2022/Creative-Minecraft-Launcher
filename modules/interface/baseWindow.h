@@ -83,6 +83,7 @@ private:
     myMainSideBar* m_menuBar;
     pageChange* m_pageChange;
     QHBoxLayout* m_panel;
+    QVBoxLayout* m_vPanel;
 };
 
 

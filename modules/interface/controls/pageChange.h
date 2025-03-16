@@ -20,6 +20,9 @@ public:
 
     void changePage(pageBase *page);
     void initControl();
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
 };
 
 #endif //CMCL_PAGECHANGE_H

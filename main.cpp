@@ -56,11 +56,11 @@ int main(int argc, char *argv[]) {
     // download.downloadObjects();
     */
 
-    multiThreadDownloader downloader(5);
-    downloader.download(url,path);
+    // multiThreadDownloader downloader(5);
+    // downloader.download(url,path);
 
     QApplication app(argc,argv); // 主窗口程序
     mainApplication mainWindow;
     mainWindow.show();
-    return app.exec();
+    return QApplication::exec();
 }

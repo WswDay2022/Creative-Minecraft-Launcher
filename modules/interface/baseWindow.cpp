@@ -11,7 +11,7 @@ namespace {
 
 baseWindow::baseWindow(QWidget *parent)
     : QWidget(parent) {
-    this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
     setAttribute(Qt::WA_TranslucentBackground);
     loadStyleSheet();
     initPanel();
@@ -44,15 +44,19 @@ baseWindow::baseWindow(QWidget *parent)
 baseWindow::~baseWindow() = default;
 
 void baseWindow::initPanel() {
-    m_panel = new QHBoxLayout(this);
-    m_panel->setContentsMargins(10,50,10,10);
+    m_panel = new QHBoxLayout();
+    m_panel->setContentsMargins(0,0,0,0);
     m_panel->setSpacing(0);
+    m_vPanel = new QVBoxLayout(this);
+    m_vPanel->addLayout(m_panel);
+    m_vPanel->setAlignment(Qt::AlignmentFlag::AlignTop);
+    m_vPanel->setSpacing(0);
+    m_vPanel->setContentsMargins(10,10,10,10);
 }
 
 void baseWindow::initPageChanger() {
     m_pageChange = new pageChange(this);
-    m_pageChange->move(260,50);
-
+    m_pageChange->move(0,0);
     m_pageChange->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding); // 宽度固定，高度自适应
     auto *base = new mainPage();
     //base->setBaseSize(100,100);
@@ -65,14 +69,14 @@ void baseWindow::initPageChanger() {
 }
 
 void baseWindow::initTitleBar() {
-    m_titleBar = new myTitleBar(this);
-    m_titleBar->move(10, 10);
-    m_titleBar->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    m_titleBar->setTitleWidth(this->width());
+    m_titleBar = new myTitleBar();
+    // m_titleBar->move(10, 10);
+    m_titleBar->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    // m_titleBar->setTitleWidth(this->width());
     static core core_;
     core_.globalInit();
     m_titleBar->setTitleContent(QString::fromStdString(core_.getSettingJson()["launcherLongName"].asString()),12);
-
+    m_vPanel->insertWidget(0,m_titleBar);
     connect(m_titleBar, SIGNAL(signalButtonMinClicked()), this, SLOT(onButtonMinClicked()));
     connect(m_titleBar, SIGNAL(signalButtonCloseClicked()), this, SLOT(onButtonCloseClicked()));
 }
@@ -142,7 +146,7 @@ void baseWindow::enterEvent(QEnterEvent *event) {
     if (m_resizeEdge != ResizeEdge::None) {
         handleResize(event->globalPosition().toPoint());
     } else {
-        updateCursorShape(event->pos());
+        updateCursorShape(event->position().toPoint());
     }
     return QWidget::enterEvent(event);
 }

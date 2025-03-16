@@ -250,6 +250,7 @@ private:
     int height;
     QLabel *background;
     QGridLayout *mainPane;
+    QVBoxLayout *basePane;
 };
 
 #endif //CMCL_MYCONTROLS_H

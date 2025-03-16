@@ -7,6 +7,7 @@
 myMessageBox::myMessageBox(QWidget *parent,int w,int h)
     : QWidget(parent), width(w), height(h) {
     setControlStyle(CONTROL_INFO);
+    setContentsMargins(10,10,10,10);
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     setGeometry(0,0,this->parentWidget()->width(),this->parentWidget()->height());
     this->setWindowFlags(Qt::FramelessWindowHint);
@@ -26,19 +27,22 @@ void myMessageBox::addChildWidget(QWidget *widget) {
 }
 
 void myMessageBox::initControl() {
+    basePane = new QVBoxLayout(this);
+    basePane->setContentsMargins(0,0,0,0);
+    basePane->setSpacing(0);
+    basePane->setAlignment(Qt::AlignmentFlag::AlignCenter);
+
     mainPane = new QGridLayout();
     mainPane->setContentsMargins(5,5,5,5);
     mainPane->setObjectName("myMessageBox");
-    background = new QLabel(this); // 遮蔽
 
     QVBoxLayout *centerPane = new QVBoxLayout();
     centerPane->setAlignment(Qt::AlignCenter);
     centerPane->setContentsMargins(100,100,100,100);
     centerPane->setSpacing(5);
 
-    background->setLayout(mainPane);
-    background->setGeometry((this->size().width()-width)/2,(this->size().height()-height)/2,width,height);
-    background->setStyleSheet("background-color:white;border:none;border-radius:6px;");
+    // background->setGeometry((this->size().width()-width)/2,(this->size().height()-height)/2,width,height);
+    // background->setStyleSheet("background-color:white;border:none;border-radius:6px;");
 
     QIcon icon = QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton);
     auto *close = new myIconButton(icon);
@@ -51,11 +55,10 @@ void myMessageBox::initControl() {
 
         auto *group = new QParallelAnimationGroup(this);
         group->addAnimation(geometryAnimation);
-        //group->addAnimation(opacityAnimation);
+        group->addAnimation(opacityAnimation);
         group->start(QAbstractAnimation::DeleteWhenStopped);
         connect(group, &QAbstractAnimation::finished,this,[this]() {
-            background->deleteLater();
-            mainPane->deleteLater();
+            basePane->deleteLater();
             this->deleteLater();
         });
     });
@@ -81,7 +84,8 @@ void myMessageBox::initControl() {
             core_.warnColor.setAlpha(255);
             break;
     }
-    background->setGraphicsEffect(shadowEffect);
+    //background->setGraphicsEffect(shadowEffect);
+    basePane->addLayout(mainPane);
 }
 
 void myMessageBox::paintEvent(QPaintEvent *event) {
